@@ -2,14 +2,16 @@
 
 ## Project Overview
 
-Halftonish is a signed distance field (SDF) renderer for creating halftone patterns. It generates grayscale pattern images that can be used for halftoning and applies SDF-based halftoning to input images.
+Halftonish is a browser-based signed distance field (SDF) renderer for creating halftone patterns. It runs entirely in the browser with no server required, generating grayscale pattern images that can be used for halftoning and applies SDF-based halftoning to input images.
 
 ## Purpose
 
-Create a flexible system for:
+Create a flexible web application for:
 - Generating SDF-based halftone patterns (initially space-filling curves)
 - Exporting grayscale pattern images for external use
-- Importing images and applying SDF halftoning directly
+- Importing images and applying SDF halftoning directly in the browser
+- Providing real-time progress feedback and cancellation during rendering
+- Hosted on GitHub Pages for zero-cost, instant access
 
 ## Software Development Life Cycle (SDLC)
 
@@ -18,10 +20,11 @@ Create a flexible system for:
 
 **Activities:**
 - Define SDF pattern types (space-filling curves: Hilbert, Peano, Z-order, etc.)
-- Specify input/output formats (PNG, JPEG, TIFF)
-- Determine CLI interface requirements
-- Establish performance benchmarks
+- Specify input/output formats (PNG, JPEG via Canvas API)
+- Determine web UI/UX requirements
+- Plan progress feedback and cancellation mechanisms
 - Document halftone algorithms
+- Design for GitHub Pages hosting
 
 **Deliverables:**
 - Requirements specification document
@@ -40,12 +43,12 @@ Create a flexible system for:
 **Duration:** Week 1-2
 
 **Activities:**
-- Design SDF renderer architecture
+- Design browser-based SDF renderer architecture
 - Create pattern library interface
-- Design image processing pipeline
-- Plan CLI command structure
-- Define configuration file format
-- Create test strategy
+- Design image processing pipeline using Canvas API
+- Plan web UI layout and controls
+- Design state management for progress/cancellation
+- Create test strategy (unit tests + manual browser testing)
 
 **Deliverables:**
 - Detailed architecture diagrams
@@ -65,34 +68,36 @@ Create a flexible system for:
 **Duration:** Weeks 2-6
 
 **Sprint 1: Core SDF Engine (Week 2-3)**
-- Implement basic SDF renderer
+- Implement basic SDF renderer in JavaScript
 - Create coordinate transformation utilities
 - Implement first space-filling curve (Hilbert)
-- Unit tests for SDF functions
+- Canvas-based rendering with progress tracking
+- Cancellation support via async/await patterns
 
 **Sprint 2: Pattern Library (Week 3-4)**
 - Implement additional space-filling curves (Peano, Z-order)
 - Create pattern composition utilities
 - Add pattern parameter controls
-- Pattern library unit tests
+- Web Workers for non-blocking computation
 
 **Sprint 3: Image Processing (Week 4-5)**
-- Image import/export functionality
-- Halftone application algorithm
+- Image import via File API
+- Canvas-based image export (PNG, JPEG)
+- Halftone application algorithm with progress updates
 - Grayscale conversion utilities
-- Image processing integration tests
 
-**Sprint 4: CLI & Integration (Week 5-6)**
-- Command-line interface
-- Configuration file support
-- End-to-end integration
+**Sprint 4: Web UI & Integration (Week 5-6)**
+- HTML/CSS interface design
+- Real-time parameter controls
+- Progress bars and cancellation buttons
+- GitHub Pages deployment configuration
 - Documentation and examples
 
 **Deliverables:**
-- Working codebase with test coverage
-- CLI tool
+- Working web application
+- Responsive UI with progress feedback
 - Code documentation
-- Usage examples
+- Interactive examples and demos
 
 **Acceptance Criteria:**
 - All unit tests passing (>80% coverage)
@@ -107,8 +112,9 @@ Create a flexible system for:
 
 **Activities:**
 - Comprehensive integration testing
-- Performance testing and optimization
-- Cross-platform testing (Linux, macOS, Windows)
+- Performance testing in various browsers
+- Cross-browser testing (Chrome, Firefox, Safari, Edge)
+- Mobile responsiveness testing
 - User acceptance testing
 - Edge case testing (large images, extreme parameters)
 - Visual quality assessment
@@ -132,19 +138,19 @@ Create a flexible system for:
 
 **Activities:**
 - Write user documentation
-- Create tutorials and examples
-- Generate API documentation
-- Prepare README with installation guide
+- Create interactive tutorials and examples
+- Document JavaScript API
+- Prepare README with usage guide
 - Create sample pattern gallery
-- Package for distribution
+- Prepare GitHub Pages deployment
 
 **Deliverables:**
 - Complete user documentation
-- API reference
-- Tutorial with examples
+- JavaScript API reference
+- Interactive tutorial with examples
 - README.md
-- Sample outputs
-- Release package (PyPI/npm)
+- Sample pattern gallery
+- GitHub Pages site configuration
 
 **Acceptance Criteria:**
 - Documentation complete and reviewed
@@ -158,22 +164,22 @@ Create a flexible system for:
 **Duration:** Week 8
 
 **Activities:**
-- Publish to package manager (pip/npm)
+- Deploy to GitHub Pages
 - Create GitHub release
-- Deploy documentation site
 - Announce release
 - Monitor initial feedback
+- Share demo link
 
 **Deliverables:**
-- Published package
-- GitHub release with binaries
-- Documentation website
+- Live GitHub Pages site
+- GitHub release tag
+- Demo examples
 - Release announcement
 
 **Acceptance Criteria:**
-- Package installable via standard methods
-- Documentation accessible online
-- No critical installation issues
+- Site accessible via GitHub Pages URL
+- Works in all major browsers
+- No critical rendering issues
 
 ---
 
@@ -204,60 +210,77 @@ Create a flexible system for:
 ## Development Principles
 
 ### Code Quality
-- Follow language-specific style guides (PEP 8 for Python, etc.)
-- Maintain >80% test coverage
-- All code must pass linting
+- Follow JavaScript best practices (ES6+ modules)
+- Maintain test coverage for core algorithms
+- All code must pass ESLint
 - Peer review required for all changes
 
 ### Performance
-- Target: Process 4K images in <5 seconds
-- Memory efficient for large images (streaming where possible)
-- Optimize SDF calculations for speed
+- Non-blocking rendering with Web Workers
+- Progress feedback during long operations
+- Interruptible/cancellable rendering
+- Memory efficient for large images
+- Optimize SDF calculations for browser speed
 
 ### Extensibility
-- Plugin architecture for new patterns
+- Modular pattern library
 - Clear interfaces for extending functionality
-- Configuration-driven where appropriate
+- URL parameter configuration support
 
 ### User Experience
 - Clear error messages
-- Helpful CLI documentation
+- Real-time progress indicators
+- Cancel buttons for long operations
 - Sensible defaults
-- Progressive disclosure of complexity
+- Responsive design for mobile and desktop
+- Immediate visual feedback
 
 ## Technology Stack
 
-**Language:** Python 3.9+ (primary consideration)
-- Excellent image processing libraries (Pillow, NumPy)
-- Strong numerical computing support
-- Easy CLI development
-- Cross-platform compatibility
+**Frontend:** Vanilla JavaScript (ES6+)
+- No build step required for simplicity
+- Direct GitHub Pages deployment
+- Modern browser APIs (Canvas, File, Web Workers)
+- Async/await for cancellable operations
 
-**Core Dependencies:**
-- NumPy: Numerical computations
-- Pillow (PIL): Image I/O and manipulation
-- Click/Typer: CLI framework
-- Pytest: Testing framework
+**Core Technologies:**
+- **HTML5 Canvas:** Image rendering and manipulation
+- **Canvas API:** Pixel-level image processing
+- **File API:** Image import from user's device
+- **Web Workers:** Non-blocking computation for large renders
+- **CSS Grid/Flexbox:** Responsive layout
 
-**Optional:**
-- Numba/Cython: Performance optimization if needed
-- Matplotlib: Visualization for development/debugging
+**Optional Enhancements:**
+- **OffscreenCanvas:** Better performance for workers (when browser support improves)
+- **WebAssembly:** Potential future optimization for SDF calculations
+
+**Testing:**
+- **Vitest** or **Jest:** Unit testing for algorithms
+- Manual browser testing across platforms
+
+**Hosting:**
+- **GitHub Pages:** Free, instant deployment
+- No server required - fully static site
 
 ## Success Metrics
 
-- Generate patterns at 1000x1000px in <1 second
-- Process 4K images with halftone in <5 seconds
+- Responsive UI updates during rendering (progress feedback)
+- User can cancel any operation at any time
 - Support at least 5 different space-filling curve patterns
+- Works in all modern browsers (Chrome, Firefox, Safari, Edge)
+- Mobile-friendly interface
 - Zero critical bugs in production
 - User satisfaction (community feedback)
+- Page loads in <2 seconds on average connection
 
 ## Risk Management
 
 | Risk | Impact | Mitigation |
 |------|--------|------------|
-| Performance issues with large images | High | Implement streaming, optimize algorithms early |
+| Browser performance with large images | High | Web Workers, chunked rendering, progress feedback |
+| Browser compatibility issues | Medium | Test on all major browsers, use polyfills if needed |
+| Memory limits in browser | Medium | Tile-based processing, clear memory between operations |
 | SDF calculation complexity | Medium | Start with simple patterns, iterate |
-| Cross-platform compatibility | Medium | Test on all platforms in CI/CD |
 | Scope creep | Medium | Strict prioritization, MVP first |
 
 ## Version History

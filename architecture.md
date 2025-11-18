@@ -2,135 +2,217 @@
 
 ## System Overview
 
-Halftonish is designed as a modular pipeline for generating and applying SDF-based halftone patterns. The architecture follows a plugin-style pattern for extensibility.
+Halftonish is a browser-based application designed as a modular pipeline for generating and applying SDF-based halftone patterns. It runs entirely in the client browser with no server required, using Web Workers for non-blocking computation and progress feedback.
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                        CLI Interface                         │
-│                    (Command Processing)                      │
-└────────────────────────┬────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                       Web UI Layer                            │
+│          (HTML, CSS, User Controls, Progress Display)         │
+└────────────────────────┬─────────────────────────────────────┘
                          │
                          ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    Configuration Layer                       │
-│              (Parameters, Settings, Validation)              │
-└────────────────────────┬────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                  Application Controller                       │
+│        (State Management, Event Handling, Cancellation)       │
+└────────────────────────┬─────────────────────────────────────┘
                          │
-         ┌───────────────┴───────────────┐
-         ▼                               ▼
-┌──────────────────────┐      ┌──────────────────────┐
-│   Pattern Generator   │      │   Image Processor    │
-│    (SDF Renderer)     │      │   (Halftone Apply)   │
-└──────────┬───────────┘      └──────────┬───────────┘
+         ┌───────────────┴────────────────┐
+         ▼                                ▼
+┌──────────────────────┐       ┌───────────────────────┐
+│  Pattern Generator    │       │   Image Processor     │
+│  (SDF Renderer)       │       │  (Halftone Apply)     │
+│  [Web Worker]         │       │  [Web Worker]         │
+└──────────┬───────────┘       └──────────┬────────────┘
            │                              │
            ▼                              ▼
-┌──────────────────────┐      ┌──────────────────────┐
-│   Pattern Library     │      │   Image I/O Layer    │
-│  (SDF Definitions)    │      │  (Load/Save Images)  │
-└──────────────────────┘      └──────────────────────┘
+┌──────────────────────┐       ┌───────────────────────┐
+│  Pattern Library      │       │  Canvas I/O Layer     │
+│  (SDF Functions)      │       │  (Load/Save Images)   │
+└──────────────────────┘       └───────────────────────┘
 ```
 
 ## Core Components
 
-### 1. CLI Interface
-**Responsibility:** User interaction, command parsing, orchestration
+### 1. Web UI Layer
+**Responsibility:** User interaction, parameter controls, visual feedback
 
-**Key Functions:**
-- Parse command-line arguments
+**Key Elements:**
+- Pattern selection dropdown/buttons
+- Parameter sliders (iterations, line width, size)
+- File upload button for images
+- Canvas preview areas
+- Progress bars with percentage
+- Cancel buttons for long operations
+- Download buttons for exports
+
+**Technologies:** HTML5, CSS3, Vanilla JavaScript
+
+**UI Layout:**
+```
+┌─────────────────────────────────────────────┐
+│              Halftonish                      │
+├─────────────────────────────────────────────┤
+│  [ Pattern: Hilbert ▼ ]                     │
+│  Iterations: [====●====] 5                   │
+│  Line Width: [==●======] 2.0                 │
+│  Size: [=====●===] 1000x1000                 │
+│  [ Generate Pattern ] [ Cancel ]             │
+│                                              │
+│  Progress: [████████░░] 80% Rendering...     │
+│                                              │
+│  ┌────────────────┐  ┌──────────────────┐  │
+│  │                 │  │                   │  │
+│  │  Pattern Canvas │  │  Result Canvas    │  │
+│  │                 │  │                   │  │
+│  └────────────────┘  └──────────────────┘  │
+│  [ ⬇ Download ]      [ ⬇ Download ]        │
+│                                              │
+│  Or apply to image:                          │
+│  [ 📁 Upload Image ] [ Apply Halftone ]     │
+└─────────────────────────────────────────────┘
+```
+
+**Responsiveness:**
+- Desktop: Side-by-side layout
+- Tablet: Stacked vertical layout
+- Mobile: Single column, smaller canvases
+
+---
+
+### 2. Application Controller
+**Responsibility:** Orchestrate operations, manage state, handle cancellation
+
+**Core State:**
+```javascript
+const AppState = {
+  currentPattern: 'hilbert',
+  parameters: {
+    iterations: 5,
+    lineWidth: 2.0,
+    size: 1000,
+    invert: false,
+    antialiasing: true
+  },
+  rendering: {
+    isRendering: false,
+    progress: 0,
+    cancelRequested: false
+  },
+  uploadedImage: null,
+  generatedPattern: null
+};
+```
+
+**Key Responsibilities:**
+- Initialize UI and event listeners
 - Validate user input
-- Route commands to appropriate modules
-- Display help and documentation
-- Handle errors gracefully
+- Spawn and communicate with Web Workers
+- Handle progress updates from workers
+- Implement cancellation logic
+- Update progress bars
+- Enable/disable UI during operations
 
-**Technologies:** Click or Typer (Python)
+**Cancellation Pattern:**
+```javascript
+class RenderController {
+  constructor() {
+    this.cancelToken = { cancelled: false };
+  }
 
-**Example Commands:**
-```bash
-# Generate a pattern
-halftonish generate hilbert --size 1000 --output pattern.png
+  async renderPattern(pattern, params) {
+    this.cancelToken.cancelled = false;
+    const worker = new Worker('pattern-worker.js');
 
-# Apply halftone to image
-halftonish apply hilbert --input photo.jpg --output halftoned.png
+    worker.postMessage({
+      type: 'render',
+      pattern,
+      params,
+      cancelToken: this.cancelToken
+    });
 
-# List available patterns
-halftonish list-patterns
+    return new Promise((resolve, reject) => {
+      worker.onmessage = (e) => {
+        if (e.data.type === 'progress') {
+          this.updateProgress(e.data.progress);
+        } else if (e.data.type === 'complete') {
+          resolve(e.data.imageData);
+          worker.terminate();
+        } else if (e.data.type === 'cancelled') {
+          reject(new Error('Cancelled'));
+          worker.terminate();
+        }
+      };
+    });
+  }
 
-# Show pattern preview
-halftonish preview hilbert --size 500
+  cancel() {
+    this.cancelToken.cancelled = true;
+  }
+}
 ```
 
 ---
 
-### 2. Configuration Layer
-**Responsibility:** Parameter management and validation
-
-**Components:**
-- **ConfigParser:** Load settings from files (YAML/JSON)
-- **ParameterValidator:** Ensure parameters are valid
-- **DefaultsManager:** Provide sensible defaults
-
-**Configuration Schema:**
-```yaml
-pattern:
-  type: hilbert
-  size: 1000
-  iterations: 5
-  invert: false
-
-rendering:
-  antialiasing: true
-  supersampling: 2
-
-halftone:
-  method: threshold
-  contrast: 1.0
-  brightness: 0.0
-
-output:
-  format: png
-  bit_depth: 8
-  dpi: 300
-```
-
----
-
-### 3. SDF Renderer
-**Responsibility:** Generate signed distance fields for patterns
+### 3. SDF Renderer (Web Worker)
+**Responsibility:** Generate signed distance fields for patterns without blocking UI
 
 **Core Architecture:**
-```python
-class SDFRenderer:
-    """Base renderer for SDF patterns"""
+```javascript
+// pattern-worker.js
+class SDFRenderer {
+  constructor() {
+    this.cancelToken = null;
+  }
 
-    def render(self, width: int, height: int,
-               pattern: SDFPattern) -> np.ndarray:
-        """
-        Render an SDF pattern to a grayscale array
+  render(width, height, pattern, params, onProgress) {
+    const imageData = new ImageData(width, height);
+    const data = imageData.data;
 
-        Returns: 2D numpy array with values in [0, 1]
-        """
-        pass
+    const totalPixels = width * height;
+    const chunkSize = 10000; // Process in chunks for progress
 
-    def normalize_coordinates(self, width: int,
-                            height: int) -> np.ndarray:
-        """Create normalized coordinate grid"""
-        pass
+    for (let i = 0; i < totalPixels; i++) {
+      // Check cancellation every chunk
+      if (i % chunkSize === 0) {
+        if (this.cancelToken?.cancelled) {
+          throw new Error('Cancelled');
+        }
+        onProgress(i / totalPixels);
+      }
 
-    def apply_antialiasing(self, sdf: np.ndarray) -> np.ndarray:
-        """Smooth the SDF for better visual quality"""
-        pass
+      const x = (i % width) / width;
+      const y = Math.floor(i / width) / height;
+
+      const distance = pattern.sdf(x, y, params);
+      const value = this.normalizeDistance(distance);
+
+      const idx = i * 4;
+      data[idx] = data[idx + 1] = data[idx + 2] = value;
+      data[idx + 3] = 255; // Alpha
+    }
+
+    return imageData;
+  }
+
+  normalizeDistance(distance) {
+    // Convert SDF distance to grayscale [0, 255]
+    // Inside = black, outside = white, smooth at boundary
+    return Math.floor((1 - Math.tanh(distance * 10)) * 127.5 + 127.5);
+  }
+}
 ```
 
-**Key Algorithms:**
-- Coordinate normalization (pixel → [0,1] space)
-- SDF evaluation across grid
-- Distance field normalization
-- Antialiasing via gradient-based smoothing
+**Key Features:**
+- Chunked processing for responsiveness
+- Regular cancellation checks
+- Progress callbacks
+- Pure computation (no DOM access in worker)
 
-**Performance Considerations:**
-- Vectorized NumPy operations for speed
-- Optional Numba JIT compilation for hot paths
-- Lazy evaluation where possible
+**Performance Optimizations:**
+- Typed arrays for pixel data
+- Avoid expensive function calls in inner loop
+- Consider transferable objects for ImageData
+- Future: OffscreenCanvas when widely supported
 
 ---
 
@@ -138,157 +220,236 @@ class SDFRenderer:
 **Responsibility:** Define SDF patterns (space-filling curves, etc.)
 
 **Pattern Interface:**
-```python
-from abc import ABC, abstractmethod
+```javascript
+class SDFPattern {
+  /**
+   * Get pattern name
+   */
+  get name() {
+    throw new Error('Must implement name getter');
+  }
 
-class SDFPattern(ABC):
-    """Base class for all SDF patterns"""
+  /**
+   * Compute signed distance field
+   * @param {number} x - Normalized x coordinate [0, 1]
+   * @param {number} y - Normalized y coordinate [0, 1]
+   * @param {object} params - Pattern parameters
+   * @returns {number} Signed distance (negative = inside)
+   */
+  sdf(x, y, params) {
+    throw new Error('Must implement sdf method');
+  }
 
-    @abstractmethod
-    def sdf(self, x: np.ndarray, y: np.ndarray) -> np.ndarray:
-        """
-        Compute signed distance field
-
-        Args:
-            x, y: Normalized coordinates in [0, 1]
-
-        Returns:
-            Signed distance values (negative = inside)
-        """
-        pass
-
-    @abstractmethod
-    def name(self) -> str:
-        """Pattern identifier"""
-        pass
-
-    def parameters(self) -> dict:
-        """Adjustable parameters"""
-        return {}
+  /**
+   * Get default parameters
+   */
+  getDefaults() {
+    return {
+      iterations: 5,
+      lineWidth: 2.0
+    };
+  }
+}
 ```
 
-**Initial Patterns:**
+**Hilbert Curve Implementation:**
+```javascript
+class HilbertPattern extends SDFPattern {
+  get name() { return 'hilbert'; }
 
-1. **Hilbert Curve**
-   - Recursive space-filling curve
-   - Parameters: iterations, line_width, spacing
-   - SDF: Distance to nearest curve segment
+  sdf(x, y, params) {
+    const points = this.generateHilbertPoints(params.iterations);
+    return this.distanceToPolyline(x, y, points, params.lineWidth);
+  }
 
-2. **Peano Curve**
-   - Alternative space-filling curve
-   - Parameters: iterations, line_width
+  generateHilbertPoints(iterations) {
+    // Recursive Hilbert curve generation
+    const points = [];
+    const n = Math.pow(2, iterations);
 
-3. **Z-Order (Morton) Curve**
-   - Simpler space-filling pattern
-   - Parameters: iterations, line_width
+    for (let i = 0; i < n * n; i++) {
+      const [hx, hy] = this.hilbertIndexToXY(i, iterations);
+      points.push([hx / n, hy / n]);
+    }
 
-4. **Gosper Curve**
-   - Hexagonal space-filling curve
-   - Parameters: iterations, line_width
+    return points;
+  }
 
-**Pattern Implementation Strategy:**
-- Generate curve points via recursive algorithm
-- Convert to line segments
-- Compute distance field to segments
-- Apply width/thickness parameter
+  hilbertIndexToXY(index, order) {
+    // Standard Hilbert curve algorithm
+    let x = 0, y = 0;
+    for (let s = 1; s < (1 << order); s *= 2) {
+      const rx = 1 & (index / 2);
+      const ry = 1 & (index ^ rx);
+      [x, y] = this.rotate(s, x, y, rx, ry);
+      x += s * rx;
+      y += s * ry;
+      index /= 4;
+    }
+    return [x, y];
+  }
+
+  rotate(n, x, y, rx, ry) {
+    if (ry === 0) {
+      if (rx === 1) {
+        x = n - 1 - x;
+        y = n - 1 - y;
+      }
+      return [y, x];
+    }
+    return [x, y];
+  }
+
+  distanceToPolyline(x, y, points, lineWidth) {
+    let minDist = Infinity;
+
+    for (let i = 0; i < points.length - 1; i++) {
+      const [x1, y1] = points[i];
+      const [x2, y2] = points[i + 1];
+      const dist = this.distanceToSegment(x, y, x1, y1, x2, y2);
+      minDist = Math.min(minDist, dist);
+    }
+
+    return minDist - (lineWidth / 1000); // Adjust for line width
+  }
+
+  distanceToSegment(px, py, x1, y1, x2, y2) {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const t = Math.max(0, Math.min(1,
+      ((px - x1) * dx + (py - y1) * dy) / (dx * dx + dy * dy)
+    ));
+    const closestX = x1 + t * dx;
+    const closestY = y1 + t * dy;
+    return Math.hypot(px - closestX, py - closestY);
+  }
+}
+```
+
+**Pattern Registry:**
+```javascript
+const PatternLibrary = {
+  patterns: new Map(),
+
+  register(pattern) {
+    this.patterns.set(pattern.name, pattern);
+  },
+
+  get(name) {
+    return this.patterns.get(name);
+  },
+
+  list() {
+    return Array.from(this.patterns.keys());
+  }
+};
+
+// Register built-in patterns
+PatternLibrary.register(new HilbertPattern());
+PatternLibrary.register(new PeanoPattern());
+PatternLibrary.register(new ZOrderPattern());
+```
 
 ---
 
-### 5. Image Processor
+### 5. Image Processor (Web Worker)
 **Responsibility:** Apply halftone patterns to images
 
 **Core Algorithm:**
-```python
-class HalftoneProcessor:
-    def apply_halftone(self,
-                      image: np.ndarray,
-                      pattern: np.ndarray,
-                      method: str = 'threshold') -> np.ndarray:
-        """
-        Apply halftone pattern to image
+```javascript
+// halftone-worker.js
+class HalftoneProcessor {
+  applyHalftone(imageData, patternData, method, onProgress) {
+    const { width, height } = imageData;
+    const result = new ImageData(width, height);
 
-        Args:
-            image: Input image (grayscale or RGB)
-            pattern: SDF pattern (grayscale, values in [0,1])
-            method: 'threshold', 'dither', or 'blend'
+    const totalPixels = width * height;
+    const chunkSize = 10000;
 
-        Returns:
-            Halftoned image
-        """
-        pass
-```
+    for (let i = 0; i < totalPixels; i++) {
+      if (i % chunkSize === 0) {
+        if (this.cancelToken?.cancelled) {
+          throw new Error('Cancelled');
+        }
+        onProgress(i / totalPixels);
+      }
 
-**Halftone Methods:**
+      const idx = i * 4;
 
-1. **Threshold Method:**
-   - Compare image intensity to pattern value
-   - Output black/white based on comparison
-   - Fast, high contrast
+      // Convert to grayscale
+      const gray = 0.299 * imageData.data[idx] +
+                   0.587 * imageData.data[idx + 1] +
+                   0.114 * imageData.data[idx + 2];
 
-2. **Dither Method:**
-   - Use pattern as dither matrix
-   - Error diffusion variant
-   - Smoother gradients
+      // Get pattern value at this pixel
+      const patternValue = patternData.data[idx];
 
-3. **Blend Method:**
-   - Multiply image by pattern
-   - Preserve some grayscale
-   - More subtle effect
+      // Apply halftone method
+      let output;
+      switch (method) {
+        case 'threshold':
+          output = gray > patternValue ? 255 : 0;
+          break;
+        case 'blend':
+          output = (gray * patternValue) / 255;
+          break;
+        case 'dither':
+          output = this.dither(gray, patternValue);
+          break;
+      }
 
-**Image Processing Pipeline:**
-```
-Input Image
-    │
-    ├─→ Convert to grayscale (if RGB)
-    │
-    ├─→ Resize pattern to match image dimensions
-    │
-    ├─→ Normalize intensities
-    │
-    ├─→ Apply halftone method
-    │
-    ├─→ Post-processing (contrast, levels)
-    │
-    ▼
-Output Image
+      result.data[idx] = result.data[idx + 1] = result.data[idx + 2] = output;
+      result.data[idx + 3] = 255;
+    }
+
+    return result;
+  }
+}
 ```
 
 ---
 
-### 6. Image I/O Layer
-**Responsibility:** Load and save images
-
-**Supported Formats:**
-- PNG (lossless, preferred for patterns)
-- JPEG (lossy, for photos)
-- TIFF (high quality, large files)
-- WebP (modern compression)
+### 6. Canvas I/O Layer
+**Responsibility:** Load and save images using Canvas API
 
 **Implementation:**
-```python
-class ImageIO:
-    @staticmethod
-    def load(path: str) -> np.ndarray:
-        """Load image as numpy array"""
-        pass
+```javascript
+class CanvasIO {
+  static async loadImage(file) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        resolve(ctx.getImageData(0, 0, canvas.width, canvas.height));
+      };
+      img.onerror = reject;
+      img.src = URL.createObjectURL(file);
+    });
+  }
 
-    @staticmethod
-    def save(path: str, image: np.ndarray,
-             format: str = 'png', **kwargs):
-        """Save numpy array as image"""
-        pass
+  static saveImage(canvas, filename, format = 'png', quality = 0.95) {
+    canvas.toBlob((blob) => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    }, `image/${format}`, quality);
+  }
 
-    @staticmethod
-    def get_format_options(format: str) -> dict:
-        """Get valid options for format"""
-        pass
+  static displayImageData(imageData, canvas) {
+    canvas.width = imageData.width;
+    canvas.height = imageData.height;
+    const ctx = canvas.getContext('2d');
+    ctx.putImageData(imageData, 0, 0);
+  }
+}
 ```
-
-**Error Handling:**
-- Validate file exists
-- Check format support
-- Handle corrupt images
-- Provide clear error messages
 
 ---
 
@@ -296,152 +457,200 @@ class ImageIO:
 
 ### Pattern Generation Flow
 ```
-User Command
+User Clicks "Generate Pattern"
     │
-    ├─→ Parse CLI args
+    ├─→ Validate parameters
     │
-    ├─→ Load configuration
+    ├─→ Disable UI, show progress bar
     │
-    ├─→ Select pattern from library
+    ├─→ Spawn Pattern Worker
     │
-    ├─→ Create SDF renderer
+    ├─→ Worker: Generate SDF pattern
+    │   ├─→ Process in chunks
+    │   ├─→ Send progress updates
+    │   └─→ Check cancellation token
     │
-    ├─→ Generate coordinate grid
+    ├─→ Main Thread: Update progress bar
     │
-    ├─→ Evaluate SDF function
+    ├─→ Worker: Complete, return ImageData
     │
-    ├─→ Normalize to [0, 255]
+    ├─→ Main Thread: Display on canvas
     │
-    ├─→ Apply antialiasing
-    │
-    ├─→ Save as image
+    ├─→ Enable download button
     │
     ▼
-Output Pattern File
+Pattern Ready
 ```
 
 ### Halftone Application Flow
 ```
-User Command + Input Image + Pattern Type
+User Uploads Image + Clicks "Apply Halftone"
     │
-    ├─→ Load input image
+    ├─→ Load image file to Canvas
     │
-    ├─→ Generate pattern (matching dimensions)
+    ├─→ Generate pattern matching image size
+    │   (or resize existing pattern)
     │
-    ├─→ Convert image to grayscale
+    ├─→ Spawn Halftone Worker
     │
-    ├─→ Apply halftone algorithm
+    ├─→ Worker: Apply halftone algorithm
+    │   ├─→ Process in chunks
+    │   ├─→ Send progress updates
+    │   └─→ Check cancellation token
     │
-    ├─→ Post-process
+    ├─→ Main Thread: Update progress bar
     │
-    ├─→ Save result
+    ├─→ Worker: Complete, return ImageData
+    │
+    ├─→ Main Thread: Display result
     │
     ▼
-Halftoned Output Image
+Halftoned Image Ready
+```
+
+### Cancellation Flow
+```
+User Clicks "Cancel" Button
+    │
+    ├─→ Set cancelToken.cancelled = true
+    │
+    ├─→ Worker detects cancellation in next chunk
+    │
+    ├─→ Worker sends 'cancelled' message
+    │
+    ├─→ Main Thread terminates worker
+    │
+    ├─→ Reset UI state
+    │
+    ├─→ Clear progress bar
+    │
+    ▼
+Ready for New Operation
 ```
 
 ---
 
-## Extensibility Points
+## Web Worker Communication
 
-### Adding New Patterns
-1. Create class inheriting from `SDFPattern`
-2. Implement `sdf()` method
-3. Register in pattern library
-4. Add unit tests
-5. Update documentation
+### Message Protocol
+```javascript
+// Main Thread → Worker
+{
+  type: 'render',
+  pattern: 'hilbert',
+  params: { iterations: 5, lineWidth: 2.0, size: 1000 },
+  cancelToken: { cancelled: false }
+}
 
-### Adding New Halftone Methods
-1. Implement method in `HalftoneProcessor`
-2. Add to method registry
-3. Update CLI options
-4. Add tests and examples
+// Worker → Main Thread (Progress)
+{
+  type: 'progress',
+  progress: 0.75  // 75% complete
+}
 
-### Plugin System (Future)
-- Discover patterns from external modules
-- Load via entry points or config
-- Validate plugin interface
-- Sandbox execution
+// Worker → Main Thread (Complete)
+{
+  type: 'complete',
+  imageData: ImageData  // Transferable
+}
+
+// Worker → Main Thread (Cancelled)
+{
+  type: 'cancelled'
+}
+
+// Worker → Main Thread (Error)
+{
+  type: 'error',
+  message: 'Error description'
+}
+```
+
+### Worker Management
+- Workers are created per operation
+- Workers are terminated after completion/cancellation
+- Use transferable objects for ImageData (zero-copy)
+- Shared cancellation token pattern
 
 ---
 
 ## Testing Strategy
 
-### Unit Tests
-- Each pattern's SDF function
-- Renderer normalization
-- Image I/O functions
-- Configuration parsing
+### Unit Tests (Vitest/Jest)
+- Pattern SDF functions (mathematical correctness)
+- Distance calculations
+- Coordinate transformations
+- Image processing algorithms
+- Utility functions
 
 ### Integration Tests
-- End-to-end pattern generation
-- Full halftone pipeline
-- CLI command execution
-- Cross-format compatibility
+- Pattern generation end-to-end
+- Halftone application end-to-end
+- File upload/download
+- Worker communication
+- Cancellation behavior
 
-### Visual Tests
-- Generate reference images
-- Compare against known-good outputs
-- Detect visual regressions
-- Perceptual difference metrics
+### Manual Browser Testing
+- Visual quality assessment
+- Cross-browser compatibility (Chrome, Firefox, Safari, Edge)
+- Mobile responsiveness
+- Performance with large images
+- Memory usage monitoring
 
 ### Performance Tests
-- Benchmark pattern generation
-- Profile memory usage
-- Test with various image sizes
-- Identify bottlenecks
+- Pattern generation timing
+- Memory consumption
+- Progress update responsiveness
+- UI responsiveness during operations
 
 ---
 
 ## Security Considerations
 
-- Validate all file paths (prevent directory traversal)
-- Limit image dimensions (prevent DoS)
-- Sanitize configuration input
-- Handle malformed images safely
-- Resource limits (memory, CPU time)
+- File uploads validated (image types only)
+- File size limits (prevent browser memory exhaustion)
+- No eval() or dynamic code execution
+- CSP headers for GitHub Pages
+- All processing client-side (no server vulnerabilities)
 
 ---
 
 ## Deployment Architecture
 
-### Package Structure
+### File Structure
 ```
 halftonish/
-├── __init__.py
-├── cli.py              # Command-line interface
-├── config.py           # Configuration management
-├── renderer.py         # SDF renderer
-├── patterns/           # Pattern library
-│   ├── __init__.py
-│   ├── base.py         # SDFPattern base class
-│   ├── hilbert.py
-│   ├── peano.py
-│   └── zorder.py
-├── processor.py        # Image processing
-├── io.py               # Image I/O
-└── utils.py            # Utilities
-
-tests/
-├── test_patterns.py
-├── test_renderer.py
-├── test_processor.py
-└── fixtures/           # Test images
-
-examples/
-├── generate_patterns.py
-└── apply_halftone.py
-
-docs/
-├── api/
-├── tutorials/
-└── patterns/
+├── index.html              # Main page
+├── styles.css              # Styles
+├── app.js                  # Main application controller
+├── patterns/
+│   ├── base.js             # SDFPattern base class
+│   ├── hilbert.js          # Hilbert curve
+│   ├── peano.js            # Peano curve
+│   └── zorder.js           # Z-order curve
+├── workers/
+│   ├── pattern-worker.js   # Pattern generation worker
+│   └── halftone-worker.js  # Halftone application worker
+├── utils/
+│   ├── canvas-io.js        # Canvas I/O utilities
+│   └── math.js             # Math utilities
+├── assets/
+│   └── examples/           # Sample images and patterns
+└── README.md
 ```
 
-### Distribution
-- PyPI package for pip installation
-- Docker image for containerized usage
-- GitHub releases with standalone binaries (PyInstaller)
+### GitHub Pages Configuration
+- Enable GitHub Pages in repository settings
+- Source: main branch, root directory
+- Custom domain optional
+- No Jekyll processing needed (add `.nojekyll`)
+
+### Browser Compatibility
+- Modern browsers with ES6+ support
+- Web Workers (all modern browsers)
+- Canvas API (universal)
+- File API (universal)
+- No transpilation needed (or use Babel if supporting older browsers)
 
 ---
 
@@ -449,20 +658,22 @@ docs/
 
 | Operation | Target | Notes |
 |-----------|--------|-------|
-| Generate 1000x1000 pattern | <1s | On modern CPU |
-| Generate 4000x4000 pattern | <5s | 4K resolution |
-| Apply halftone to 4K image | <5s | Full pipeline |
-| Memory usage | <500MB | For 4K images |
-| Startup time | <100ms | CLI responsiveness |
+| UI responsiveness | Always responsive | Web Workers prevent blocking |
+| Progress updates | Every 100ms | Smooth progress bar animation |
+| Cancellation response | <500ms | Worker checks frequently |
+| Small pattern (500px) | <1s | Instant feedback |
+| Large pattern (2000px) | <10s | With progress feedback |
+| Page load | <2s | Minimal dependencies |
+| Memory usage | <500MB | For typical operations |
 
 ---
 
 ## Future Enhancements
 
-1. **GPU Acceleration:** CUDA/OpenCL for large images
-2. **Real-time Preview:** GUI with live parameter adjustment
-3. **Batch Processing:** Process multiple images
-4. **Color Halftone:** CMYK separation
-5. **Video Support:** Apply to video frames
-6. **Web Interface:** Browser-based tool
-7. **Pattern Editor:** Visual pattern creation
+1. **OffscreenCanvas:** Better worker performance when widely supported
+2. **WebAssembly:** Optimize SDF calculations if needed
+3. **IndexedDB:** Cache generated patterns
+4. **Service Worker:** Offline capability
+5. **WebGL:** GPU-accelerated rendering for real-time preview
+6. **Multi-threading:** Multiple workers for parallel processing
+7. **Streaming:** Process very large images in tiles

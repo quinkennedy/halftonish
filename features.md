@@ -31,8 +31,9 @@ Generate grayscale images of signed distance field patterns that can be exported
 - Generation completes in <5s for 4K resolution
 
 **Technical Notes:**
-- Use NumPy for efficient array operations
+- Use Canvas API with ImageData for pixel operations
 - Implement coordinate normalization
+- Web Worker for non-blocking rendering
 - Support square dimensions initially
 
 ---
@@ -75,83 +76,140 @@ Load an image and apply an SDF pattern as a halftone effect, producing a process
 - As a user, I want the pattern to automatically match my image dimensions
 
 **Acceptance Criteria:**
-- Supports common formats (JPEG, PNG, TIFF)
+- Supports common formats (JPEG, PNG)
 - Automatic pattern scaling to image size
 - Preserves aspect ratio
 - Output quality comparable to input
-- Processing time <5s for 4K images
+- Non-blocking UI with progress feedback
 
 **Technical Notes:**
-- Convert RGB to grayscale
+- Use File API for image upload
+- Convert RGB to grayscale via Canvas
 - Resize pattern to match image
 - Threshold-based halftoning initially
+- Web Worker for processing
 
 ---
 
-### F4: Command-Line Interface
+### F4: Web User Interface
 **Priority:** P0
 **Sprint:** 4
 
 **Description:**
-User-friendly CLI for all operations with clear help and error messages.
+User-friendly web interface for all operations with clear visual feedback and controls.
 
 **User Stories:**
-- As a user, I want to run commands from my terminal
+- As a user, I want to generate patterns in my browser
 - As a user, I want helpful error messages when I make mistakes
-- As a user, I want to see available options with `--help`
+- As a user, I want intuitive controls with sliders and buttons
+- As a user, I want to see my pattern and results immediately
 
 **Acceptance Criteria:**
-- `halftonish generate` command works
-- `halftonish apply` command works
-- `--help` shows clear documentation
-- Error messages are actionable
-- Version information available
+- Pattern generation UI works with all controls
+- Image upload and halftone application works
+- Responsive design works on desktop and mobile
+- Error messages are clear and actionable
+- Downloads work for both patterns and results
 
-**Commands:**
-```bash
-halftonish generate <pattern> [options]
-halftonish apply <pattern> --input <file> [options]
-halftonish list-patterns
-halftonish --version
-halftonish --help
-```
+**UI Elements:**
+- Pattern selection dropdown
+- Parameter sliders (iterations, line width, size)
+- Generate and Cancel buttons
+- File upload button
+- Canvas preview areas
+- Download buttons
 
 **Technical Notes:**
-- Use Click or Typer framework
-- Implement command groups
-- Add progress bars for long operations
+- Vanilla JavaScript with ES6 modules
+- CSS Grid/Flexbox for layout
+- Event-driven architecture
+- Mobile-responsive design
 
 ---
 
-### F5: Basic Image I/O
+### F5: Browser Image I/O
 **Priority:** P0
 **Sprint:** 3
 
 **Description:**
-Load and save images in common formats with proper error handling.
+Load and save images in the browser using Canvas API and File API.
 
 **User Stories:**
-- As a user, I want to load JPEG and PNG images
-- As a user, I want clear errors if my file doesn't exist
-- As a user, I want to save outputs in different formats
+- As a user, I want to upload JPEG and PNG images from my computer
+- As a user, I want clear errors if my file is invalid
+- As a user, I want to download results in PNG or JPEG format
 
 **Acceptance Criteria:**
-- Load PNG, JPEG
-- Save PNG, JPEG
-- File not found errors are clear
+- Upload PNG, JPEG via file picker
+- Download PNG, JPEG to user's device
+- Invalid file errors are clear
 - Corrupt image handling
-- Format auto-detection
+- Format selection for download
 
 **Technical Notes:**
-- Use Pillow (PIL) library
-- Validate file paths
-- Handle color space conversions
+- File API for uploads
+- Canvas toBlob() for downloads
+- Validate file types (MIME)
+- Handle load errors gracefully
+
+---
+
+### F6: Progress Feedback
+**Priority:** P0
+**Sprint:** 2
+
+**Description:**
+Real-time progress updates during pattern generation and halftone application.
+
+**User Stories:**
+- As a user, I want to see progress when generating large patterns
+- As a user, I want to know how long an operation will take
+- As a user, I want the UI to remain responsive during processing
+
+**Acceptance Criteria:**
+- Progress bar updates smoothly during rendering
+- Percentage displayed (0-100%)
+- UI remains responsive (no freezing)
+- Progress updates at least every 100ms
+
+**Technical Notes:**
+- Web Worker sends progress messages
+- Main thread updates progress bar
+- Chunked processing for granular updates
+- requestAnimationFrame for smooth UI
+
+---
+
+### F7: Cancellation Support
+**Priority:** P0
+**Sprint:** 2
+
+**Description:**
+Ability to cancel long-running operations at any time.
+
+**User Stories:**
+- As a user, I want to cancel a render that's taking too long
+- As a user, I want to change parameters mid-render
+- As a user, I want the UI to reset after cancellation
+
+**Acceptance Criteria:**
+- Cancel button appears during operations
+- Cancellation responds within 500ms
+- Worker terminates cleanly
+- UI resets to ready state
+- No memory leaks after cancellation
+
+**Technical Notes:**
+- Shared cancellation token object
+- Worker checks token periodically
+- Terminate worker on cancel
+- Clean up resources properly
 
 ---
 
 ## Should Have Features
 
-### F6: Peano Curve Pattern
+### F8: Peano Curve Pattern
 **Priority:** P1
 **Sprint:** 2
 
@@ -169,7 +227,7 @@ Implement Peano space-filling curve as second pattern option.
 
 ---
 
-### F7: Z-Order (Morton) Curve Pattern
+### F9: Z-Order (Morton) Curve Pattern
 **Priority:** P1
 **Sprint:** 2
 
@@ -187,7 +245,7 @@ Implement Z-order/Morton curve pattern.
 
 ---
 
-### F8: Pattern Inversion
+### F10: Pattern Inversion
 **Priority:** P1
 **Sprint:** 2
 
@@ -208,7 +266,7 @@ Option to invert patterns (swap black/white).
 
 ---
 
-### F9: Antialiasing Control
+### F11: Antialiasing Control
 **Priority:** P1
 **Sprint:** 2
 
@@ -233,39 +291,32 @@ Control over antialiasing quality for smoother or sharper patterns.
 
 ---
 
-### F10: Configuration File Support
+### F12: URL Parameter Configuration
 **Priority:** P1
 **Sprint:** 4
 
 **Description:**
-Load settings from YAML/JSON config file for complex setups.
+Load settings from URL parameters for sharing and bookmarking.
 
 **User Stories:**
-- As a user, I want to save my preferred settings
-- As a user, I want to reuse configurations
-- As a power user, I want batch processing configs
+- As a user, I want to share my pattern settings via URL
+- As a user, I want to bookmark my favorite configurations
+- As a power user, I want to link directly to specific patterns
 
 **Acceptance Criteria:**
-- Supports YAML and JSON
-- CLI args override config file
-- Schema validation
-- Example configs provided
+- Supports URL query parameters
+- Parameters update UI on page load
+- Share button generates shareable URL
+- Invalid parameters show helpful errors
 
-**Example Config:**
-```yaml
-pattern:
-  type: hilbert
-  iterations: 6
-  line_width: 2.0
-
-output:
-  format: png
-  dpi: 300
+**Example URL:**
+```
+https://example.com/halftonish?pattern=hilbert&iterations=6&lineWidth=2.0&size=1000
 ```
 
 ---
 
-### F11: Non-Square Dimensions
+### F13: Non-Square Dimensions
 **Priority:** P1
 **Sprint:** 3
 
@@ -288,7 +339,7 @@ Support rectangular output, not just square.
 
 ---
 
-### F12: Contrast and Brightness Adjustment
+### F14: Contrast and Brightness Adjustment
 **Priority:** P1
 **Sprint:** 3
 
@@ -310,7 +361,7 @@ Post-processing controls for halftoned images.
 
 ## Could Have Features
 
-### F13: Multiple Halftone Methods
+### F15: Multiple Halftone Methods
 **Priority:** P2
 **Sprint:** 5
 
@@ -334,7 +385,7 @@ Alternative halftoning algorithms beyond basic threshold.
 
 ---
 
-### F14: Gosper/Flowsnake Curve Pattern
+### F16: Gosper/Flowsnake Curve Pattern
 **Priority:** P2
 **Sprint:** 5
 
@@ -352,25 +403,27 @@ Hexagonal space-filling curve pattern.
 
 ---
 
-### F15: Pattern Preview
+### F17: Real-Time Parameter Preview
 **Priority:** P2
 **Sprint:** 5
 
 **Description:**
-Quick preview at low resolution before generating full size.
+Auto-generate small preview as user adjusts parameters.
 
 **User Stories:**
-- As a user, I want to preview before waiting for full render
-- As a user, I want to iterate quickly on parameters
+- As a user, I want to see instant feedback when I change parameters
+- As a user, I want to iterate quickly on pattern design
+- As a user, I want low-res preview while adjusting, high-res when done
 
 **Acceptance Criteria:**
-- `halftonish preview <pattern>` command
-- Generates 512x512 preview quickly (<1s)
-- Optional display in terminal (ASCII art) or image viewer
+- Small preview canvas updates as sliders move (debounced)
+- Preview generates quickly (<500ms for 256x256)
+- Main generate button creates full resolution
+- Preview doesn't block UI
 
 ---
 
-### F16: Batch Processing
+### F18: Batch Image Processing
 **Priority:** P2
 **Sprint:** 6
 
@@ -378,23 +431,24 @@ Quick preview at low resolution before generating full size.
 Process multiple images with same pattern/settings.
 
 **User Stories:**
-- As a user, I want to halftone a folder of images
+- As a user, I want to halftone multiple images at once
 - As a photographer, I want consistent style across a series
+- As a user, I want to drag-and-drop multiple files
 
 **Acceptance Criteria:**
-- `halftonish batch --input-dir --output-dir` command
-- Progress indicator
+- Multiple file upload support
+- Progress indicator for each image
 - Error handling per file
-- Parallel processing option
+- Download all as ZIP
 
 **Technical Notes:**
-- Use multiprocessing for parallelism
-- Preserve filenames
-- Summary report at end
+- Process sequentially or use multiple workers
+- JSZip for bundling downloads
+- Individual and batch progress tracking
 
 ---
 
-### F17: Custom Line Color
+### F19: Custom Line Color
 **Priority:** P2
 **Sprint:** 5
 
@@ -412,7 +466,7 @@ Generate patterns with colored lines instead of black/white.
 
 ---
 
-### F18: Pattern Tiling/Seamless Option
+### F20: Pattern Tiling/Seamless Option
 **Priority:** P2
 **Sprint:** 6
 
@@ -430,74 +484,87 @@ Generate patterns that tile seamlessly when repeated.
 
 ---
 
-### F19: WebP and TIFF Support
+### F21: WebP Support
 **Priority:** P2
 **Sprint:** 5
 
 **Description:**
-Additional output format support.
+Additional modern format support.
 
 **User Stories:**
-- As a user, I want modern WebP format
-- As a professional, I want TIFF for print quality
+- As a user, I want modern WebP format for smaller file sizes
+- As a user, I want best compression for web use
 
 **Acceptance Criteria:**
 - Load and save WebP
-- Load and save TIFF
 - Proper quality/compression settings
+- Browser compatibility check
+
+**Technical Notes:**
+- Canvas toBlob supports WebP in modern browsers
+- Fallback to PNG if not supported
 
 ---
 
-### F20: Verbose/Debug Mode
+### F22: Debug Console
 **Priority:** P2
 **Sprint:** 4
 
 **Description:**
-Detailed logging for troubleshooting.
+Detailed logging for troubleshooting via browser console.
 
 **User Stories:**
 - As a developer, I want to see what's happening
 - As a user, I want to debug issues
+- As a user, I want performance metrics
 
 **Acceptance Criteria:**
-- `--verbose` flag
-- `--debug` flag for extra detail
-- Logs timing information
-- Logs parameter values
+- Debug mode toggle in UI or URL param
+- Logs to browser console
+- Timing information for operations
+- Parameter values logged
+- Memory usage stats
+
+**Technical Notes:**
+- console.debug(), console.time()
+- Performance API for metrics
+- Toggle via ?debug=true URL param
 
 ---
 
 ## Won't Have (Yet) - Future Considerations
 
-### F21: Real-Time GUI
+### F23: Desktop Application
 **Priority:** P3
 **Future**
 
 **Description:**
-Graphical interface with live preview and interactive parameter adjustment.
+Electron-based desktop app for offline use.
 
 **Notes:**
-- Possible frameworks: Qt, Electron, web-based
-- Requires significant additional development
-- Consider after CLI is stable
+- Electron wrapper around web app
+- Offline capability
+- Native file system access
+- Consider if users request it
 
 ---
 
-### F22: GPU Acceleration
+### F24: GPU/WebGL Acceleration
 **Priority:** P3
 **Future**
 
 **Description:**
-Use GPU for rendering large patterns and processing large images.
+Use WebGL/GPU for rendering large patterns and processing large images.
 
 **Notes:**
-- CUDA or OpenCL
+- WebGL shaders for SDF rendering
 - Significant complexity
-- Evaluate if CPU performance insufficient
+- Evaluate if Web Worker performance insufficient
+- Could enable real-time parameter adjustment at high resolution
 
 ---
 
-### F23: Color (CMYK) Halftoning
+### F25: Color (CMYK) Halftoning
 **Priority:** P3
 **Future**
 
@@ -511,7 +578,7 @@ Separate CMYK channels for print-ready halftones.
 
 ---
 
-### F24: Video Processing
+### F26: Video Processing
 **Priority:** P3
 **Future**
 
@@ -525,21 +592,22 @@ Apply halftone to video, frame by frame.
 
 ---
 
-### F25: Web-Based Tool
+### F27: Advanced Export Options
 **Priority:** P3
 **Future**
 
 **Description:**
-Browser-based version for accessibility.
+SVG export and high-DPI support.
 
 **Notes:**
-- WebAssembly compilation
-- JavaScript implementation
-- Cloud processing option
+- Export patterns as SVG (vector format)
+- Retina/high-DPI optimizations
+- Print-quality DPI settings
+- PDF export for print workflows
 
 ---
 
-### F26: Custom Pattern Editor
+### F28: Custom Pattern Editor
 **Priority:** P3
 **Future**
 
@@ -553,17 +621,18 @@ Visual tool to create custom SDF patterns.
 
 ---
 
-### F27: Machine Learning Integration
+### F29: Pattern Marketplace/Gallery
 **Priority:** P3
 **Future**
 
 **Description:**
-AI-powered pattern suggestion or generation.
+Community pattern sharing and gallery.
 
 **Notes:**
-- Train on pattern aesthetics
-- Style transfer
-- Automatic parameter tuning
+- User-submitted patterns
+- Pattern library/marketplace
+- Voting and favorites
+- Requires backend infrastructure
 
 ---
 
@@ -596,29 +665,31 @@ F16 (Batch) ← F3 (Apply)
 - F1: Generate patterns
 - F2: Hilbert curve
 - F3: Apply halftone
-- F4: CLI
-- F5: Image I/O
+- F4: Web UI
+- F5: Browser I/O
+- F6: Progress feedback
+- F7: Cancellation
 
 ### v0.2.0 - Pattern Library (Week 8)
-- F6: Peano curve
-- F7: Z-Order curve
-- F8: Pattern inversion
-- F9: Antialiasing
-- F10: Config files
+- F8: Peano curve
+- F9: Z-Order curve
+- F10: Pattern inversion
+- F11: Antialiasing
+- F12: URL parameters
 
 ### v0.3.0 - Refinement (Week 10)
-- F11: Non-square dimensions
-- F12: Contrast/brightness
-- F13: Multiple methods
-- F15: Preview
-- F20: Verbose mode
+- F13: Non-square dimensions
+- F14: Contrast/brightness
+- F15: Multiple methods
+- F17: Real-time preview
+- F22: Debug console
 
 ### v0.4.0 - Advanced Features (Week 12)
-- F14: Gosper curve
-- F16: Batch processing
-- F17: Custom colors
-- F18: Seamless tiling
-- F19: WebP/TIFF
+- F16: Gosper curve
+- F18: Batch processing
+- F19: Custom colors
+- F20: Seamless tiling
+- F21: WebP support
 
 ### v1.0.0 - Production Ready (Week 14)
 - Polish and bug fixes
@@ -633,9 +704,11 @@ F16 (Batch) ← F3 (Apply)
 
 | Feature | Metric | Target |
 |---------|--------|--------|
-| F1 (Generate) | Performance | <1s for 1000px, <5s for 4K |
-| F2 (Hilbert) | Quality | Smooth lines, no artifacts |
-| F3 (Apply) | Performance | <5s for 4K image |
-| F4 (CLI) | Usability | <5 clicks to basic task |
+| F1 (Generate) | Quality | Smooth patterns, no artifacts |
+| F2 (Hilbert) | Correctness | Mathematically accurate curve |
+| F3 (Apply) | Quality | Clean halftone results |
+| F4 (Web UI) | Usability | Intuitive, mobile-friendly |
 | F5 (I/O) | Compatibility | 99% of common images load |
-| F16 (Batch) | Throughput | >10 images/min (4K) |
+| F6 (Progress) | Responsiveness | Updates every 100ms |
+| F7 (Cancel) | Responsiveness | Responds in <500ms |
+| F18 (Batch) | Throughput | Handles 10+ images smoothly |
