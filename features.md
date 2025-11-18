@@ -8,9 +8,27 @@ Features are categorized using MoSCoW method:
 - **Could Have:** Desirable enhancements
 - **Won't Have (Yet):** Future considerations
 
+## Feature Status
+
+Features move through states: **TODO → ACTIVE → DONE**
+
+See `claude.md` for the complete SDLC workflow.
+
 ---
 
-## Must Have Features (MVP)
+## ACTIVE Features
+
+No features currently in active development.
+
+---
+
+## DONE Features
+
+No features completed yet.
+
+---
+
+## TODO: Must Have Features (MVP)
 
 ### F1: Generate SDF Pattern Images
 **Priority:** P0
@@ -207,7 +225,7 @@ Ability to cancel long-running operations at any time.
 
 ---
 
-## Should Have Features
+## TODO: Should Have Features
 
 ### F8: Peano Curve Pattern
 **Priority:** P1
@@ -359,7 +377,7 @@ Post-processing controls for halftoned images.
 
 ---
 
-## Could Have Features
+## TODO: Could Have Features
 
 ### F15: Multiple Halftone Methods
 **Priority:** P2
@@ -532,7 +550,7 @@ Detailed logging for troubleshooting via browser console.
 
 ---
 
-## Won't Have (Yet) - Future Considerations
+## TODO: Won't Have (Yet) - Future Considerations
 
 ### F23: Desktop Application
 **Priority:** P3

@@ -15,195 +15,185 @@ Create a flexible web application for:
 
 ## Software Development Life Cycle (SDLC)
 
-### Phase 1: Requirements & Planning
-**Duration:** Week 1
+This project follows a feature-driven development cycle. Each feature moves through the following states:
 
-**Activities:**
-- Define SDF pattern types (space-filling curves: Hilbert, Peano, Z-order, etc.)
-- Specify input/output formats (PNG, JPEG via Canvas API)
-- Determine web UI/UX requirements
-- Plan progress feedback and cancellation mechanisms
-- Document halftone algorithms
-- Design for GitHub Pages hosting
+**TODO → ACTIVE → DONE**
 
-**Deliverables:**
-- Requirements specification document
-- Feature list with priorities
-- Architecture design document
-- Technology stack selection
+### Feature Development Process
 
-**Acceptance Criteria:**
-- All stakeholders agree on scope
-- Technical feasibility confirmed
-- Architecture reviewed and approved
+For each feature (see features.md for the complete list):
 
----
+#### 1. Move Feature to ACTIVE
 
-### Phase 2: Design
-**Duration:** Week 1-2
+- Select a feature from the TODO list in features.md
+- Move it from the "Must Have" or "Should Have" section to an ACTIVE section
+- Update the feature status to indicate work has begun
+- Commit this change with message: `Start: [Feature Name]`
 
-**Activities:**
-- Design browser-based SDF renderer architecture
-- Create pattern library interface
-- Design image processing pipeline using Canvas API
-- Plan web UI layout and controls
-- Design state management for progress/cancellation
-- Create test strategy (unit tests + manual browser testing)
+#### 2. Create Detailed Planning Document
 
-**Deliverables:**
-- Detailed architecture diagrams
-- API/interface specifications
-- Data flow diagrams
-- Test plan document
-- Development environment setup guide
+- Create a planning document: `docs/planning/[feature-id]-[feature-name].md`
+- Include:
+  - **Detailed Requirements:** Specific implementation requirements
+  - **Technical Design:** Architecture, data structures, algorithms
+  - **Task Breakdown:** Step-by-step implementation tasks
+  - **Dependencies:** Other features or components needed
+  - **Testing Plan:** How to verify the feature works
+  - **Acceptance Criteria:** Clear definition of "done"
+- Commit planning doc with message: `Plan: [Feature Name]`
 
-**Acceptance Criteria:**
-- Architecture supports extensibility for new patterns
-- Design reviewed for performance considerations
-- Test coverage plan approved
+#### 3. Implement Feature
 
----
+- Write code following the plan
+- Make incremental commits with clear messages
+- Follow coding standards defined below
+- Keep implementation focused on the single feature
+- Update relevant files (HTML, CSS, JS, workers, etc.)
+- Each commit message format: `Implement: [Feature Name] - [specific change]`
 
-### Phase 3: Implementation
-**Duration:** Weeks 2-6
+#### 4. Test Feature
 
-**Sprint 1: Core SDF Engine (Week 2-3)**
-- Implement basic SDF renderer in JavaScript
-- Create coordinate transformation utilities
-- Implement first space-filling curve (Hilbert)
-- Canvas-based rendering with progress tracking
-- Cancellation support via async/await patterns
-
-**Sprint 2: Pattern Library (Week 3-4)**
-- Implement additional space-filling curves (Peano, Z-order)
-- Create pattern composition utilities
-- Add pattern parameter controls
-- Web Workers for non-blocking computation
-
-**Sprint 3: Image Processing (Week 4-5)**
-- Image import via File API
-- Canvas-based image export (PNG, JPEG)
-- Halftone application algorithm with progress updates
-- Grayscale conversion utilities
-
-**Sprint 4: Web UI & Integration (Week 5-6)**
-- HTML/CSS interface design
-- Real-time parameter controls
-- Progress bars and cancellation buttons
-- GitHub Pages deployment configuration
-- Documentation and examples
-
-**Deliverables:**
-- Working web application
-- Responsive UI with progress feedback
-- Code documentation
-- Interactive examples and demos
-
-**Acceptance Criteria:**
-- All unit tests passing (>80% coverage)
-- Integration tests passing
-- Code review completed
-- Performance benchmarks met
-
----
-
-### Phase 4: Testing
-**Duration:** Week 6-7
-
-**Activities:**
-- Comprehensive integration testing
-- Performance testing in various browsers
+- Manually test in browser
+- Test all user stories from features.md
+- Test edge cases and error conditions
 - Cross-browser testing (Chrome, Firefox, Safari, Edge)
-- Mobile responsiveness testing
-- User acceptance testing
-- Edge case testing (large images, extreme parameters)
-- Visual quality assessment
+- Mobile responsive testing
+- Document any bugs found and fix them
+- Commit fixes with message: `Fix: [Feature Name] - [bug description]`
 
-**Deliverables:**
-- Test reports
-- Bug fixes
-- Performance optimization results
-- Visual pattern gallery
+#### 5. Document Feature
 
-**Acceptance Criteria:**
-- Zero critical bugs
-- Performance targets achieved
-- Visual quality approved
-- All test cases passing
+- Update README.md if user-facing
+- Add JSDoc comments to new functions/classes
+- Update architecture.md if architecture changed
+- Create usage examples if applicable
+- Update features.md to reflect completion
+- Commit docs with message: `Docs: [Feature Name]`
 
----
+#### 6. Move Feature to DONE
 
-### Phase 5: Documentation & Release
-**Duration:** Week 7-8
+- In features.md, move feature from ACTIVE to DONE section
+- Add completion date
+- Note any deviations from original plan
+- Commit with message: `Complete: [Feature Name]`
 
-**Activities:**
-- Write user documentation
-- Create interactive tutorials and examples
-- Document JavaScript API
-- Prepare README with usage guide
-- Create sample pattern gallery
-- Prepare GitHub Pages deployment
+#### 7. Ensure All Changes Committed
 
-**Deliverables:**
-- Complete user documentation
-- JavaScript API reference
-- Interactive tutorial with examples
-- README.md
-- Sample pattern gallery
-- GitHub Pages site configuration
-
-**Acceptance Criteria:**
-- Documentation complete and reviewed
-- Installation process tested
-- Examples working across platforms
-- Release artifacts created
+- Run `git status` to verify working directory is clean
+- Push all commits to main branch
+- Verify GitHub Pages deployment if applicable
 
 ---
 
-### Phase 6: Deployment
-**Duration:** Week 8
+### Development Workflow Example
 
-**Activities:**
-- Deploy to GitHub Pages
-- Create GitHub release
-- Announce release
-- Monitor initial feedback
-- Share demo link
+```bash
+# 1. Start feature
+# Edit features.md - move F2 from TODO to ACTIVE
+git add features.md
+git commit -m "Start: F2 Hilbert Curve Pattern"
 
-**Deliverables:**
-- Live GitHub Pages site
-- GitHub release tag
-- Demo examples
-- Release announcement
+# 2. Create planning doc
+# Create docs/planning/F2-hilbert-curve.md
+git add docs/planning/F2-hilbert-curve.md
+git commit -m "Plan: F2 Hilbert Curve Pattern"
 
-**Acceptance Criteria:**
-- Site accessible via GitHub Pages URL
-- Works in all major browsers
-- No critical rendering issues
+# 3. Implement
+# Edit patterns/hilbert.js
+git add patterns/hilbert.js
+git commit -m "Implement: F2 Hilbert Curve - SDF algorithm"
+
+# Edit app.js to integrate
+git add app.js
+git commit -m "Implement: F2 Hilbert Curve - integrate with UI"
+
+# 4. Test and fix
+# Test in browser, find bug, fix it
+git add patterns/hilbert.js
+git commit -m "Fix: F2 Hilbert Curve - boundary condition error"
+
+# 5. Document
+# Add JSDoc comments, update README
+git add patterns/hilbert.js README.md
+git commit -m "Docs: F2 Hilbert Curve Pattern"
+
+# 6. Mark complete
+# Edit features.md - move F2 from ACTIVE to DONE
+git add features.md
+git commit -m "Complete: F2 Hilbert Curve Pattern"
+
+# 7. Push all
+git push origin main
+```
 
 ---
 
-### Phase 7: Maintenance & Enhancement
-**Duration:** Ongoing
+### File Organization
 
-**Activities:**
-- Monitor issues and bug reports
-- Release patches for critical bugs
-- Plan feature enhancements
-- Community engagement
-- Performance improvements
-- Add new pattern types
+**Planning Documents:**
+```
+docs/
+└── planning/
+    ├── F1-generate-patterns.md
+    ├── F2-hilbert-curve.md
+    ├── F3-apply-halftone.md
+    └── ...
+```
 
-**Deliverables:**
-- Bug fix releases
-- Feature updates
-- Improved documentation
-- Community contributions
+**Source Code:**
+```
+index.html         # Main HTML
+styles.css         # Styles
+app.js             # Main controller
+patterns/          # Pattern implementations
+  ├── base.js
+  ├── hilbert.js
+  └── ...
+workers/           # Web Workers
+  ├── pattern-worker.js
+  └── halftone-worker.js
+utils/             # Utilities
+  └── canvas-io.js
+```
 
-**Acceptance Criteria:**
-- Issues addressed within SLA
-- Regular update cadence maintained
-- Community satisfaction
+---
+
+### Git Branch Strategy
+
+- **All work happens on `main` branch**
+- No feature branches
+- Commit early and often
+- Each commit should be atomic and focused
+- Push regularly to keep remote updated
+
+---
+
+### Commit Message Format
+
+```
+[Category]: [Feature Name] - [description]
+```
+
+**Categories:**
+- `Start` - Beginning work on a feature
+- `Plan` - Adding planning documentation
+- `Implement` - Implementation work
+- `Fix` - Bug fixes
+- `Docs` - Documentation updates
+- `Complete` - Feature completion
+- `Refactor` - Code refactoring
+- `Test` - Test-related changes
+
+**Examples:**
+```
+Start: F6 Progress Feedback
+Plan: F6 Progress Feedback
+Implement: F6 Progress Feedback - add progress bar component
+Implement: F6 Progress Feedback - integrate with workers
+Fix: F6 Progress Feedback - progress bar not updating
+Docs: F6 Progress Feedback
+Complete: F6 Progress Feedback
+```
 
 ---
 
