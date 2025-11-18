@@ -80,8 +80,9 @@ For each feature (see features.md for the complete list):
 #### 7. Ensure All Changes Committed
 
 - Run `git status` to verify working directory is clean
-- Push all commits to main branch
-- Verify GitHub Pages deployment if applicable
+- Push all commits to development branch
+- When ready for release, create pull request to main branch
+- Verify GitHub Pages deployment after merge to main
 
 ---
 
@@ -123,7 +124,7 @@ git add features.md
 git commit -m "Complete: F2 Hilbert Curve Pattern"
 
 # 7. Push all
-git push origin main
+git push origin claude/halftone-patterns-01C8rNKxZuiMKwij6jMNwH4j
 ```
 
 ---
@@ -160,11 +161,12 @@ utils/             # Utilities
 
 ### Git Branch Strategy
 
-- **All work happens on `main` branch**
-- No feature branches
+- **All work happens on the current development branch**: `claude/halftone-patterns-01C8rNKxZuiMKwij6jMNwH4j`
+- This branch will eventually be merged to main via pull request
 - Commit early and often
 - Each commit should be atomic and focused
 - Push regularly to keep remote updated
+- Branch naming follows the pattern: `claude/[description]-[session-id]`
 
 ---
 
