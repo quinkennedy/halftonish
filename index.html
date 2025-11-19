@@ -42,11 +42,64 @@
                         <input type="range" id="line-width" min="0.5" max="10.0" value="2.0" step="0.1">
                     </div>
 
+                    <!-- Size Specification -->
                     <div class="control-group">
-                        <label for="size">
-                            Size: <span id="size-value">1000</span>px
-                        </label>
-                        <input type="range" id="size" min="256" max="2048" value="1000" step="64">
+                        <label>Size Mode:</label>
+                        <div class="radio-group">
+                            <label>
+                                <input type="radio" name="size-mode" value="pixel" checked>
+                                Pixels
+                            </label>
+                            <label>
+                                <input type="radio" name="size-mode" value="physical">
+                                Physical + DPI
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Pixel Mode Controls -->
+                    <div id="pixel-size-controls" class="size-controls">
+                        <div class="control-group">
+                            <label for="width-px">Width (px):</label>
+                            <input type="number" id="width-px" min="256" max="4096" value="1000" step="64">
+                        </div>
+                        <div class="control-group">
+                            <label for="height-px">Height (px):</label>
+                            <input type="number" id="height-px" min="256" max="4096" value="1000" step="64">
+                        </div>
+                    </div>
+
+                    <!-- Physical Mode Controls -->
+                    <div id="physical-size-controls" class="size-controls" style="display: none;">
+                        <div class="control-group">
+                            <label for="width-physical">Width:</label>
+                            <div class="input-with-unit">
+                                <input type="number" id="width-physical" min="1" max="100" value="8.5" step="0.1">
+                                <select id="unit-select">
+                                    <option value="in">in</option>
+                                    <option value="mm">mm</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label for="height-physical">Height:</label>
+                            <div class="input-with-unit">
+                                <input type="number" id="height-physical" min="1" max="100" value="11" step="0.1">
+                                <span class="unit-display" id="height-unit">in</span>
+                            </div>
+                        </div>
+                        <div class="control-group">
+                            <label for="dpi">DPI:</label>
+                            <input type="number" id="dpi" min="72" max="600" value="300" step="1">
+                        </div>
+                    </div>
+
+                    <!-- Calculated Dimensions Display -->
+                    <div class="control-group info-display">
+                        <label>Output Size:</label>
+                        <div class="info-value">
+                            <span id="output-dimensions">1000 × 1000 px</span>
+                        </div>
                     </div>
 
                     <div class="control-group checkbox">
@@ -74,9 +127,15 @@
                 </div>
 
                 <div class="actions">
-                    <button id="download-pattern-btn" class="btn btn-secondary" disabled>
-                        Download Pattern
-                    </button>
+                    <div class="download-group">
+                        <select id="export-format">
+                            <option value="png">PNG</option>
+                            <option value="pdf">PDF</option>
+                        </select>
+                        <button id="download-pattern-btn" class="btn btn-secondary" disabled>
+                            Download Pattern
+                        </button>
+                    </div>
                 </div>
             </section>
 
@@ -133,6 +192,9 @@
             </p>
         </footer>
     </div>
+
+    <!-- External libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <!-- Main application script -->
     <script type="module" src="app.js"></script>
