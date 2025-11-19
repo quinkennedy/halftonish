@@ -102,6 +102,23 @@ main {
     align-items: center;
 }
 
+/* Pattern parameter groups */
+.pattern-params {
+    padding: 1rem;
+    background: var(--background);
+    border: 1px solid var(--border-color);
+    border-radius: 0.375rem;
+    margin: 0.5rem 0;
+}
+
+.pattern-params .control-group {
+    margin-bottom: 0.75rem;
+}
+
+.pattern-params .control-group:last-child {
+    margin-bottom: 0;
+}
+
 label {
     font-weight: 500;
     color: var(--text-primary);
@@ -109,7 +126,8 @@ label {
 }
 
 select,
-input[type="file"] {
+input[type="file"],
+input[type="number"] {
     padding: 0.5rem 0.75rem;
     border: 1px solid var(--border-color);
     border-radius: 0.375rem;
@@ -118,8 +136,13 @@ input[type="file"] {
     cursor: pointer;
 }
 
+input[type="number"] {
+    cursor: text;
+}
+
 select:focus,
-input[type="file"]:focus {
+input[type="file"]:focus,
+input[type="number"]:focus {
     outline: 2px solid var(--primary-color);
     outline-offset: 2px;
 }

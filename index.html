@@ -26,23 +26,106 @@
                     <div class="control-group">
                         <label for="pattern-select">Pattern:</label>
                         <select id="pattern-select">
-                            <option value="hilbert">Hilbert Curve</option>
-                            <!-- More patterns will be added -->
+                            <option value="random">Random</option>
+                            <option value="noise">Noise</option>
+                            <option value="benday">Ben-Day Dots</option>
+                            <option value="hilbert" disabled>Hilbert Curve (coming soon)</option>
                         </select>
                     </div>
 
-                    <div class="control-group">
-                        <label for="iterations">
-                            Iterations: <span id="iterations-value">5</span>
-                        </label>
-                        <input type="range" id="iterations" min="1" max="8" value="5" step="1">
+                    <!-- Random Pattern Parameters -->
+                    <div id="random-params" class="pattern-params" style="display: none;">
+                        <div class="control-group">
+                            <label for="random-distribution">Distribution:</label>
+                            <select id="random-distribution">
+                                <option value="uniform">Uniform</option>
+                                <option value="normal">Normal (Gaussian)</option>
+                                <option value="binary">Binary (Black/White)</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <label for="random-seed">Seed (optional):</label>
+                            <input type="number" id="random-seed" placeholder="Leave empty for random">
+                        </div>
                     </div>
 
-                    <div class="control-group">
-                        <label for="line-width">
-                            Line Width: <span id="line-width-value">2.0</span>
-                        </label>
-                        <input type="range" id="line-width" min="0.5" max="10.0" value="2.0" step="0.1">
+                    <!-- Noise Pattern Parameters -->
+                    <div id="noise-params" class="pattern-params" style="display: none;">
+                        <div class="control-group">
+                            <label for="noise-scale">
+                                Scale: <span id="noise-scale-value">1.0</span>
+                            </label>
+                            <input type="range" id="noise-scale" min="0.1" max="10.0" value="1.0" step="0.1">
+                        </div>
+                        <div class="control-group">
+                            <label for="noise-octaves">
+                                Octaves: <span id="noise-octaves-value">4</span>
+                            </label>
+                            <input type="range" id="noise-octaves" min="1" max="8" value="4" step="1">
+                        </div>
+                        <div class="control-group">
+                            <label for="noise-persistence">
+                                Persistence: <span id="noise-persistence-value">0.5</span>
+                            </label>
+                            <input type="range" id="noise-persistence" min="0.0" max="1.0" value="0.5" step="0.05">
+                        </div>
+                        <div class="control-group">
+                            <label for="noise-seed">Seed (optional):</label>
+                            <input type="number" id="noise-seed" placeholder="Leave empty for random">
+                        </div>
+                    </div>
+
+                    <!-- Ben-Day Dots Parameters -->
+                    <div id="benday-params" class="pattern-params" style="display: none;">
+                        <div class="control-group">
+                            <label for="benday-spacing">
+                                Dot Spacing (px): <span id="benday-spacing-value">20</span>
+                            </label>
+                            <input type="range" id="benday-spacing" min="5" max="100" value="20" step="1">
+                        </div>
+                        <div class="control-group">
+                            <label for="benday-size">
+                                Dot Size: <span id="benday-size-value">0.70</span>
+                            </label>
+                            <input type="range" id="benday-size" min="0.1" max="1.0" value="0.7" step="0.05">
+                        </div>
+                        <div class="control-group">
+                            <label for="benday-shape">Dot Shape:</label>
+                            <select id="benday-shape">
+                                <option value="circle">Circle</option>
+                                <option value="square">Square</option>
+                                <option value="diamond">Diamond</option>
+                            </select>
+                        </div>
+                        <div class="control-group">
+                            <label for="benday-grid">Grid Type:</label>
+                            <select id="benday-grid">
+                                <option value="square">Square</option>
+                                <option value="hexagonal">Hexagonal</option>
+                            </select>
+                        </div>
+                        <div class="control-group checkbox">
+                            <label>
+                                <input type="checkbox" id="benday-antialiasing" checked>
+                                Anti-aliasing
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Hilbert Curve Parameters (legacy, hidden for now) -->
+                    <div id="hilbert-params" class="pattern-params" style="display: none;">
+                        <div class="control-group">
+                            <label for="iterations">
+                                Iterations: <span id="iterations-value">5</span>
+                            </label>
+                            <input type="range" id="iterations" min="1" max="8" value="5" step="1">
+                        </div>
+                        <div class="control-group">
+                            <label for="line-width">
+                                Line Width: <span id="line-width-value">2.0</span>
+                            </label>
+                            <input type="range" id="line-width" min="0.5" max="10.0" value="2.0" step="0.1">
+                        </div>
                     </div>
 
                     <!-- Size Specification -->

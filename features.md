@@ -24,6 +24,62 @@ No features currently in active development.
 
 ## DONE Features
 
+### F1.5: Simple Halftone Patterns ✓
+**Priority:** P0
+**Status:** DONE (Completed: 2025-01-19)
+
+**Description:**
+Implement three simple, immediately usable halftone patterns: Random, Noise, and Ben-Day Dots. These patterns provide functional output while more complex SDF patterns are developed, and allow testing of the complete workflow (generation → export → analysis).
+
+**User Stories:**
+- As a user, I want to generate random noise patterns for testing
+- As a user, I want smooth Perlin/Simplex noise for organic textures
+- As a user, I want classic Ben-Day dots for comic/pop art effects
+- As a user, I want to control pattern parameters (scale, spacing, dot size)
+- As a user, I want reproducible patterns using seeds
+
+**Patterns:**
+1. **Random Pattern**
+   - Pure random pixels
+   - Distribution types: uniform, normal, binary
+   - Optional seed for reproducibility
+
+2. **Noise Pattern**
+   - Perlin/Simplex noise
+   - Parameters: scale (0.1-10), octaves (1-8), persistence (0-1)
+   - Smooth, continuous gradients
+
+3. **Ben-Day Dots**
+   - Regular dot grids
+   - Parameters: spacing (pixels/inches), dot size (0-1)
+   - Grid types: square, hexagonal
+   - Dot shapes: circle, square, diamond
+   - Anti-aliasing option
+
+**Acceptance Criteria:**
+- All three patterns generate correctly at all supported resolutions
+- Pattern-specific parameters work as expected
+- Seed produces reproducible results for random and noise
+- Ben-Day dots spacing works in pixels and physical units
+- All patterns export to PNG and PDF with correct metadata
+- All patterns work with darkness analysis tool
+- Dynamic UI shows/hides parameters based on selected pattern
+- Performance: 4K generation in <5s
+
+**Technical Notes:**
+- Self-contained Simplex noise implementation (no external dependencies)
+- Seeded PRNG using Mulberry32 algorithm
+- Ben-Day dots use SDF approach for clean rendering
+- Web Worker for all pattern generation with module support
+- Dynamic UI with pattern-specific parameters
+
+**Implemented Patterns:**
+1. **Random Pattern** - Pure random pixels with distribution control
+2. **Noise Pattern** - Smooth Simplex noise with multi-octave layering
+3. **Ben-Day Dots** - Classic halftone dots with grid and shape options
+
+**All acceptance criteria met. Patterns fully functional.**
+
 ### F1: Generate SDF Pattern Images ✓
 **Priority:** P0
 **Status:** DONE (Completed: 2025-01-19)

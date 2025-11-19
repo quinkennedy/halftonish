@@ -1,67 +1,82 @@
 /**
  * Pattern Generation Web Worker
- * Generates SDF patterns without blocking the main thread
+ * Generates halftone patterns without blocking the main thread
  */
 
-// TODO: Import pattern classes when implementing
-// For now, this is a placeholder
+import { generateRandomPattern } from '../patterns/random-pattern.js';
+import { generateNoisePattern } from '../patterns/noise-pattern.js';
+import { generateBendayPattern } from '../patterns/benday-pattern.js';
+
+// Cancellation state
+let cancelToken = { cancelled: false };
 
 self.addEventListener('message', async (e) => {
     const { type, pattern, params, width, height } = e.data;
 
     if (type === 'render') {
+        // Reset cancellation
+        cancelToken.cancelled = false;
+
         try {
-            await renderPattern(pattern, params, width, height);
-        } catch (error) {
+            const imageData = await renderPattern(pattern, params, width, height);
+
+            // Send completed result
             self.postMessage({
-                type: 'error',
-                message: error.message
-            });
+                type: 'complete',
+                imageData: imageData
+            }, [imageData.data.buffer]);
+        } catch (error) {
+            if (error.message === 'Generation cancelled') {
+                self.postMessage({ type: 'cancelled' });
+            } else {
+                self.postMessage({
+                    type: 'error',
+                    message: error.message
+                });
+            }
         }
     } else if (type === 'cancel') {
-        // Handle cancellation
-        self.postMessage({ type: 'cancelled' });
+        // Set cancellation flag
+        cancelToken.cancelled = true;
     }
 });
 
 /**
- * Render pattern to ImageData
+ * Progress callback for pattern generators
+ */
+function onProgress(progress) {
+    self.postMessage({
+        type: 'progress',
+        progress: progress
+    });
+}
+
+/**
+ * Render pattern based on type
  */
 async function renderPattern(patternType, params, width, height) {
-    const imageData = new ImageData(width, height);
-    const data = imageData.data;
-    const totalPixels = width * height;
-    const chunkSize = 10000;
+    let imageData;
 
-    // TODO: Load actual pattern class
-    // For now, generate placeholder
+    switch (patternType) {
+        case 'random':
+            imageData = generateRandomPattern(width, height, params, onProgress, cancelToken);
+            break;
 
-    for (let i = 0; i < totalPixels; i++) {
-        // Send progress updates
-        if (i % chunkSize === 0) {
-            self.postMessage({
-                type: 'progress',
-                progress: i / totalPixels
-            });
+        case 'noise':
+            imageData = generateNoisePattern(width, height, params, onProgress, cancelToken);
+            break;
 
-            // Allow cancellation
-            await new Promise(resolve => setTimeout(resolve, 0));
-        }
+        case 'benday':
+            imageData = generateBendayPattern(width, height, params, onProgress, cancelToken);
+            break;
 
-        const x = (i % width) / width;
-        const y = Math.floor(i / width) / height;
+        case 'hilbert':
+            // TODO: Implement Hilbert curve
+            throw new Error('Hilbert curve pattern not yet implemented');
 
-        // Placeholder: simple gradient
-        const value = Math.floor((x + y) * 127.5);
-
-        const idx = i * 4;
-        data[idx] = data[idx + 1] = data[idx + 2] = value;
-        data[idx + 3] = 255;
+        default:
+            throw new Error(`Unknown pattern type: ${patternType}`);
     }
 
-    // Send completed result
-    self.postMessage({
-        type: 'complete',
-        imageData: imageData
-    }, [imageData.data.buffer]);
+    return imageData;
 }
