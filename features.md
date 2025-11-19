@@ -18,37 +18,46 @@ See `claude.md` for the complete SDLC workflow.
 
 ## ACTIVE Features
 
-### F3: Apply Halftone to Image
+(No active features - ready for F2: Hilbert Curve Pattern)
+
+---
+
+## DONE Features
+
+### F3: Apply Halftone to Image ✓
 **Priority:** P0
-**Status:** ACTIVE (Started: 2025-01-19)
+**Status:** DONE (Completed: 2025-01-19)
 
 **Description:**
 Load an image and apply an SDF pattern as a halftone effect, producing a processed output image. Pattern tiles automatically if image is larger than pattern.
 
 **User Stories:**
-- As a user, I want to load a photo and apply a halftone pattern
-- As a user, I want to save the halftoned result
-- As a user, I want the pattern to tile if my image is larger
+- As a user, I want to load a photo and apply a halftone pattern ✓
+- As a user, I want to save the halftoned result ✓
+- As a user, I want the pattern to tile if my image is larger ✓
 
 **Acceptance Criteria:**
-- Supports common formats (JPEG, PNG)
-- Pattern tiles automatically when image > pattern
-- Threshold-based halftoning: output = (sourceGray < patternGray) ? BLACK : WHITE
-- Preserves aspect ratio
-- Output quality comparable to input
-- Non-blocking UI with progress feedback
-- Cancellation support
+- Supports common formats (JPEG, PNG) ✓
+- Pattern tiles automatically when image > pattern ✓
+- Threshold-based halftoning: output = (sourceGray < patternGray) ? BLACK : WHITE ✓
+- Preserves aspect ratio ✓
+- Output quality comparable to input ✓
+- Non-blocking UI with progress feedback ✓
+- Cancellation support ✓
 
 **Technical Notes:**
-- Use File API for image upload
+- File API for image upload
 - Convert RGB to grayscale via Canvas
-- Tile pattern to match image dimensions
-- Threshold-based halftoning
-- Web Worker for processing
+- Tile pattern using modulo arithmetic (patX = x % patWidth, patY = y % patHeight)
+- Threshold and blend halftoning methods
+- Web Worker for non-blocking processing
 
----
+**Implementation:**
+- `workers/halftone-worker.js` - Halftone application with pattern tiling
+- `app.js` - Image upload and halftone application UI
+- Automatic pattern tiling when image dimensions exceed pattern dimensions
 
-## DONE Features
+**All acceptance criteria met. Feature fully functional.**
 
 ### F1.5: Simple Halftone Patterns ✓
 **Priority:** P0
@@ -181,34 +190,6 @@ Implement Hilbert space-filling curve as the first SDF pattern.
 - Recursive algorithm for point generation
 - Distance field computation to curve segments
 - Proper handling of curve endpoints
-
----
-
-### F3: Apply Halftone to Image
-**Priority:** P0
-**Sprint:** 3
-
-**Description:**
-Load an image and apply an SDF pattern as a halftone effect, producing a processed output image.
-
-**User Stories:**
-- As a user, I want to load a photo and apply a Hilbert curve halftone
-- As a user, I want to save the halftoned result
-- As a user, I want the pattern to automatically match my image dimensions
-
-**Acceptance Criteria:**
-- Supports common formats (JPEG, PNG)
-- Automatic pattern scaling to image size
-- Preserves aspect ratio
-- Output quality comparable to input
-- Non-blocking UI with progress feedback
-
-**Technical Notes:**
-- Use File API for image upload
-- Convert RGB to grayscale via Canvas
-- Resize pattern to match image
-- Threshold-based halftoning initially
-- Web Worker for processing
 
 ---
 
