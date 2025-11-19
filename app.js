@@ -320,15 +320,15 @@ function setupControlListeners() {
     // Upper threshold slider
     elements.upperThresholdSlider.addEventListener('input', (e) => {
         const value = parseFloat(e.target.value);
-        state.analysisConfig.upperThreshold = value;
-        elements.upperThresholdValue.textContent = (value * 100).toFixed(0);
+        state.analysisConfig.upperThreshold = value / 100; // Convert percentage to 0-1 range
+        elements.upperThresholdValue.textContent = value.toFixed(0);
     });
 
     // Lower threshold slider
     elements.lowerThresholdSlider.addEventListener('input', (e) => {
         const value = parseFloat(e.target.value);
-        state.analysisConfig.lowerThreshold = value;
-        elements.lowerThresholdValue.textContent = (value * 100).toFixed(0);
+        state.analysisConfig.lowerThreshold = value / 100; // Convert percentage to 0-1 range
+        elements.lowerThresholdValue.textContent = value.toFixed(0);
     });
 
     // Show overlay checkbox

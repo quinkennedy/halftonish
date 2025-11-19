@@ -118,13 +118,13 @@ export function generateBendayPattern(width, height, params, onProgress, cancelT
     const imageData = new ImageData(width, height);
     const data = imageData.data;
 
-    // Maximum distance from dot center to furthest point in grid cell
+    // Maximum distance from dot center to furthest point in grid cell (Voronoi cell vertex)
     // For square grid: diagonal from center to corner = spacing / sqrt(2)
-    // For hexagonal grid: distance from center to hexagon corner = spacing
+    // For hexagonal grid: distance from center to hexagon vertex = spacing / sqrt(3)
     let maxDist;
     if (gridType === 'hexagonal') {
-        // For hex grid, furthest point is at hexagon corner
-        maxDist = spacing;
+        // For hex close-packed grid, Voronoi cell vertices are at spacing/sqrt(3) from center
+        maxDist = spacing / Math.sqrt(3);
     } else {
         // For square grid, furthest point is at diagonal corner
         maxDist = spacing / Math.sqrt(2);
