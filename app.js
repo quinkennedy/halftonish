@@ -79,6 +79,7 @@ const elements = {
     hilbertParams: document.getElementById('hilbert-params'),
     peanoParams: document.getElementById('peano-params'),
     zorderParams: document.getElementById('zorder-params'),
+    gosperParams: document.getElementById('gosper-params'),
 
     // Random pattern controls
     randomDistribution: document.getElementById('random-distribution'),
@@ -150,6 +151,10 @@ const elements = {
     imageInfo: document.getElementById('image-info'),
     imageDimensions: document.getElementById('image-dimensions'),
     halftoneMethod: document.getElementById('halftone-method'),
+    halftoneContrast: document.getElementById('halftone-contrast'),
+    halftoneContrastValue: document.getElementById('halftone-contrast-value'),
+    halftoneBrightness: document.getElementById('halftone-brightness'),
+    halftoneBrightnessValue: document.getElementById('halftone-brightness-value'),
     applyHalftoneBtn: document.getElementById('apply-halftone-btn'),
     cancelHalftoneBtn: document.getElementById('cancel-halftone-btn'),
     halftoneProgress: document.getElementById('halftone-progress'),
@@ -389,6 +394,7 @@ function updatePatternParameters() {
     elements.hilbertParams.style.display = 'none';
     elements.peanoParams.style.display = 'none';
     elements.zorderParams.style.display = 'none';
+    elements.gosperParams.style.display = 'none';
 
     // Show relevant parameter group
     switch (state.currentPattern) {
@@ -410,6 +416,9 @@ function updatePatternParameters() {
         case 'zorder':
             elements.zorderParams.style.display = 'block';
             break;
+        case 'gosper':
+            elements.gosperParams.style.display = 'block';
+            break;
     }
 }
 
@@ -426,6 +435,16 @@ function setupActionListeners() {
 
     // Image upload
     elements.imageUpload.addEventListener('change', handleImageUpload);
+
+    // Halftone controls
+    elements.halftoneContrast.addEventListener('input', (e) => {
+        const value = parseInt(e.target.value);
+        elements.halftoneContrastValue.textContent = value;
+    });
+    elements.halftoneBrightness.addEventListener('input', (e) => {
+        const value = parseInt(e.target.value);
+        elements.halftoneBrightnessValue.textContent = value;
+    });
 
     // Apply halftone
     elements.applyHalftoneBtn.addEventListener('click', applyHalftone);
@@ -509,6 +528,12 @@ async function generatePattern() {
                 };
                 break;
             case 'zorder':
+                params = {
+                    iterations: state.parameters.iterations,
+                    lineWidth: state.parameters.lineWidth
+                };
+                break;
+            case 'gosper':
                 params = {
                     iterations: state.parameters.iterations,
                     lineWidth: state.parameters.lineWidth
@@ -726,8 +751,10 @@ async function applyHalftone() {
     elements.downloadResultBtn.disabled = true;
 
     try {
-        // Get halftone method
+        // Get halftone method and adjustments
         const method = elements.halftoneMethod.value;
+        const contrast = parseInt(elements.halftoneContrast.value);
+        const brightness = parseInt(elements.halftoneBrightness.value);
 
         // Create worker if needed
         if (!state.workers.halftone) {
@@ -763,7 +790,9 @@ async function applyHalftone() {
                 type: 'apply',
                 imageData: state.uploadedImage,
                 patternData: state.generatedPattern,
-                method: method
+                method: method,
+                contrast: contrast,
+                brightness: brightness
             });
         });
 

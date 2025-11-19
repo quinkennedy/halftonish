@@ -32,6 +32,7 @@
                             <option value="hilbert">Hilbert Curve</option>
                             <option value="peano">Peano Curve</option>
                             <option value="zorder">Z-Order Curve</option>
+                            <option value="gosper">Gosper Curve</option>
                         </select>
                     </div>
 
@@ -174,6 +175,26 @@
                                 Iterations: <span id="iterations-value">5</span>
                             </label>
                             <input type="range" id="iterations" min="1" max="8" value="5" step="1">
+                        </div>
+                        <div class="control-group">
+                            <label for="line-width">
+                                Line Width: <span id="line-width-value">2.0</span>
+                            </label>
+                            <input type="range" id="line-width" min="0.5" max="10.0" value="2.0" step="0.1">
+                        </div>
+                    </div>
+
+                    <!-- Gosper Curve Parameters -->
+                    <div id="gosper-params" class="pattern-params" style="display: none;">
+                        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.75rem;">
+                            Gosper (Flowsnake) hexagonal space-filling curve. Uses L-system generation for organic hexagonal
+                            patterns. Recommended max iterations: 5-6 (grows as 7^n).
+                        </p>
+                        <div class="control-group">
+                            <label for="iterations">
+                                Iterations: <span id="iterations-value">4</span>
+                            </label>
+                            <input type="range" id="iterations" min="1" max="6" value="4" step="1">
                         </div>
                         <div class="control-group">
                             <label for="line-width">
@@ -383,7 +404,29 @@
                         <select id="halftone-method">
                             <option value="threshold">Threshold</option>
                             <option value="blend">Blend</option>
+                            <option value="floyd-steinberg">Floyd-Steinberg Dithering</option>
+                            <option value="ordered">Ordered Dithering (Bayer)</option>
                         </select>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="halftone-contrast">
+                            Contrast: <span id="halftone-contrast-value">0</span>
+                        </label>
+                        <input type="range" id="halftone-contrast" min="-100" max="100" value="0" step="5">
+                        <p style="font-size: 0.75rem; color: var(--text-secondary); margin: 0.25rem 0 0 0;">
+                            Adjust contrast of final halftone result
+                        </p>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="halftone-brightness">
+                            Brightness: <span id="halftone-brightness-value">0</span>
+                        </label>
+                        <input type="range" id="halftone-brightness" min="-100" max="100" value="0" step="5">
+                        <p style="font-size: 0.75rem; color: var(--text-secondary); margin: 0.25rem 0 0 0;">
+                            Adjust brightness of final halftone result
+                        </p>
                     </div>
                 </div>
 
