@@ -29,7 +29,7 @@
                             <option value="random">Random</option>
                             <option value="noise">Noise</option>
                             <option value="benday">Ben-Day Dots</option>
-                            <option value="hilbert" disabled>Hilbert Curve (coming soon)</option>
+                            <option value="hilbert">Hilbert Curve</option>
                         </select>
                     </div>
 
@@ -121,8 +121,12 @@
                         </div>
                     </div>
 
-                    <!-- Hilbert Curve Parameters (legacy, hidden for now) -->
+                    <!-- Hilbert Curve Parameters -->
                     <div id="hilbert-params" class="pattern-params" style="display: none;">
+                        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.75rem;">
+                            Space-filling Hilbert curve as SDF pattern. Higher iterations create more complex curves.
+                            The curve is rendered as a distance field with configurable line width.
+                        </p>
                         <div class="control-group">
                             <label for="iterations">
                                 Iterations: <span id="iterations-value">5</span>

@@ -18,37 +18,70 @@ See `claude.md` for the complete SDLC workflow.
 
 ## ACTIVE Features
 
-### F3: Apply Halftone to Image
+### F2: Hilbert Curve Pattern
 **Priority:** P0
 **Status:** ACTIVE (Started: 2025-01-19)
+
+**Description:**
+Implement Hilbert space-filling curve as the primary SDF pattern for halftoning. The Hilbert curve is a continuous fractal space-filling curve that provides smooth, organic halftone patterns.
+
+**User Stories:**
+- As a user, I want to generate Hilbert curve patterns
+- As a user, I want to control the recursion depth/iterations
+- As a user, I want to adjust the line thickness
+
+**Acceptance Criteria:**
+- Mathematically correct Hilbert curve generation
+- Iterations parameter (1-8 range)
+- Line width parameter (0.5-10.0 range)
+- Smooth SDF rendering without artifacts
+- Works with all existing features (export, analysis, halftoning)
+
+**Technical Notes:**
+- Recursive algorithm for point generation
+- Distance field computation to curve segments
+- Proper handling of curve endpoints
+- Curve centered in canvas
+- SDF gradient from curve (0/black) to background (255/white)
+
+---
+
+## DONE Features
+
+### F3: Apply Halftone to Image ✓
+**Priority:** P0
+**Status:** DONE (Completed: 2025-01-19)
 
 **Description:**
 Load an image and apply an SDF pattern as a halftone effect, producing a processed output image. Pattern tiles automatically if image is larger than pattern.
 
 **User Stories:**
-- As a user, I want to load a photo and apply a halftone pattern
-- As a user, I want to save the halftoned result
-- As a user, I want the pattern to tile if my image is larger
+- As a user, I want to load a photo and apply a halftone pattern ✓
+- As a user, I want to save the halftoned result ✓
+- As a user, I want the pattern to tile if my image is larger ✓
 
 **Acceptance Criteria:**
-- Supports common formats (JPEG, PNG)
-- Pattern tiles automatically when image > pattern
-- Threshold-based halftoning: output = (sourceGray < patternGray) ? BLACK : WHITE
-- Preserves aspect ratio
-- Output quality comparable to input
-- Non-blocking UI with progress feedback
-- Cancellation support
+- Supports common formats (JPEG, PNG) ✓
+- Pattern tiles automatically when image > pattern ✓
+- Threshold-based halftoning: output = (sourceGray < patternGray) ? BLACK : WHITE ✓
+- Preserves aspect ratio ✓
+- Output quality comparable to input ✓
+- Non-blocking UI with progress feedback ✓
+- Cancellation support ✓
 
 **Technical Notes:**
-- Use File API for image upload
+- File API for image upload
 - Convert RGB to grayscale via Canvas
-- Tile pattern to match image dimensions
-- Threshold-based halftoning
-- Web Worker for processing
+- Tile pattern using modulo arithmetic (patX = x % patWidth, patY = y % patHeight)
+- Threshold and blend halftoning methods
+- Web Worker for non-blocking processing
 
----
+**Implementation:**
+- `workers/halftone-worker.js` - Halftone application with pattern tiling
+- `app.js` - Image upload and halftone application UI
+- Automatic pattern tiling when image dimensions exceed pattern dimensions
 
-## DONE Features
+**All acceptance criteria met. Feature fully functional.**
 
 ### F1.5: Simple Halftone Patterns ✓
 **Priority:** P0
@@ -158,59 +191,6 @@ Generate grayscale images of signed distance field patterns that can be exported
 ---
 
 ## TODO: Must Have Features (MVP)
-
-### F2: Hilbert Curve Pattern
-**Priority:** P0
-**Sprint:** 1
-
-**Description:**
-Implement Hilbert space-filling curve as the first SDF pattern.
-
-**User Stories:**
-- As a user, I want to generate Hilbert curve patterns
-- As a user, I want to control the recursion depth/iterations
-- As a user, I want to adjust the line thickness
-
-**Acceptance Criteria:**
-- Mathematically correct Hilbert curve generation
-- Iterations parameter (1-8 range)
-- Line width parameter (0.1-10.0 range)
-- Smooth SDF rendering without artifacts
-
-**Technical Notes:**
-- Recursive algorithm for point generation
-- Distance field computation to curve segments
-- Proper handling of curve endpoints
-
----
-
-### F3: Apply Halftone to Image
-**Priority:** P0
-**Sprint:** 3
-
-**Description:**
-Load an image and apply an SDF pattern as a halftone effect, producing a processed output image.
-
-**User Stories:**
-- As a user, I want to load a photo and apply a Hilbert curve halftone
-- As a user, I want to save the halftoned result
-- As a user, I want the pattern to automatically match my image dimensions
-
-**Acceptance Criteria:**
-- Supports common formats (JPEG, PNG)
-- Automatic pattern scaling to image size
-- Preserves aspect ratio
-- Output quality comparable to input
-- Non-blocking UI with progress feedback
-
-**Technical Notes:**
-- Use File API for image upload
-- Convert RGB to grayscale via Canvas
-- Resize pattern to match image
-- Threshold-based halftoning initially
-- Web Worker for processing
-
----
 
 ### F4: Web User Interface
 **Priority:** P0
