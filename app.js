@@ -4,6 +4,7 @@
  */
 
 import { SizeCalculator } from './utils/size-calculator.js';
+import { exportPatternToPDF, getMetadataFromState } from './utils/pdf-export.js';
 
 // Application state
 const state = {
@@ -324,16 +325,34 @@ function updateGenerateProgress(progress) {
 /**
  * Download pattern
  */
-function downloadPattern() {
+async function downloadPattern() {
     const canvas = elements.patternCanvas;
-    canvas.toBlob((blob) => {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `halftonish-${state.currentPattern}-${Date.now()}.png`;
-        a.click();
-        URL.revokeObjectURL(url);
-    });
+    const timestamp = Date.now();
+    const format = state.exportFormat;
+
+    try {
+        if (format === 'pdf') {
+            // Export as PDF
+            const metadata = getMetadataFromState(state);
+            const filename = `halftonish-${state.currentPattern}-${timestamp}.pdf`;
+            await exportPatternToPDF(canvas, metadata, filename);
+            console.log('Pattern exported as PDF:', filename);
+        } else {
+            // Export as PNG
+            canvas.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `halftonish-${state.currentPattern}-${timestamp}.png`;
+                a.click();
+                URL.revokeObjectURL(url);
+                console.log('Pattern exported as PNG');
+            }, 'image/png', 1.0);
+        }
+    } catch (error) {
+        console.error('Failed to download pattern:', error);
+        alert('Failed to download pattern: ' + error.message);
+    }
 }
 
 /**
