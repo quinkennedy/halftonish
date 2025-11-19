@@ -7,6 +7,8 @@ import { generateRandomPattern } from '../patterns/random-pattern.js';
 import { generateNoisePattern } from '../patterns/noise-pattern.js';
 import { generateBendayPattern } from '../patterns/benday-pattern.js';
 import { generateHilbertPattern } from '../patterns/hilbert-pattern.js';
+import { generatePeanoPattern } from '../patterns/peano-pattern.js';
+import { generateZOrderPattern } from '../patterns/zorder-pattern.js';
 
 // Cancellation state
 let cancelToken = { cancelled: false };
@@ -73,6 +75,14 @@ async function renderPattern(patternType, params, width, height) {
 
         case 'hilbert':
             imageData = generateHilbertPattern(width, height, params, onProgress, cancelToken);
+            break;
+
+        case 'peano':
+            imageData = generatePeanoPattern(width, height, params, onProgress, cancelToken);
+            break;
+
+        case 'zorder':
+            imageData = generateZOrderPattern(width, height, params, onProgress, cancelToken);
             break;
 
         default:

@@ -30,6 +30,8 @@
                             <option value="noise">Noise</option>
                             <option value="benday">Ben-Day Dots</option>
                             <option value="hilbert">Hilbert Curve</option>
+                            <option value="peano">Peano Curve</option>
+                            <option value="zorder">Z-Order Curve</option>
                         </select>
                     </div>
 
@@ -141,6 +143,46 @@
                         </div>
                     </div>
 
+                    <!-- Peano Curve Parameters -->
+                    <div id="peano-params" class="pattern-params" style="display: none;">
+                        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.75rem;">
+                            Peano space-filling curve using 3×3 subdivision. Creates a more rectangular meandering pattern
+                            compared to Hilbert. Recommended max iterations: 5-6 (grows as 3^n).
+                        </p>
+                        <div class="control-group">
+                            <label for="iterations">
+                                Iterations: <span id="iterations-value">4</span>
+                            </label>
+                            <input type="range" id="iterations" min="1" max="6" value="4" step="1">
+                        </div>
+                        <div class="control-group">
+                            <label for="line-width">
+                                Line Width: <span id="line-width-value">2.0</span>
+                            </label>
+                            <input type="range" id="line-width" min="0.5" max="10.0" value="2.0" step="0.1">
+                        </div>
+                    </div>
+
+                    <!-- Z-Order Curve Parameters -->
+                    <div id="zorder-params" class="pattern-params" style="display: none;">
+                        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.75rem;">
+                            Z-Order (Morton) curve using recursive Z-pattern subdivision. Simpler and faster to generate
+                            than Hilbert or Peano. Creates distinctive diagonal patterns.
+                        </p>
+                        <div class="control-group">
+                            <label for="iterations">
+                                Iterations: <span id="iterations-value">5</span>
+                            </label>
+                            <input type="range" id="iterations" min="1" max="8" value="5" step="1">
+                        </div>
+                        <div class="control-group">
+                            <label for="line-width">
+                                Line Width: <span id="line-width-value">2.0</span>
+                            </label>
+                            <input type="range" id="line-width" min="0.5" max="10.0" value="2.0" step="0.1">
+                        </div>
+                    </div>
+
                     <!-- Size Specification -->
                     <div class="control-group">
                         <label>Size Mode:</label>
@@ -198,6 +240,9 @@
                         <label>Output Size:</label>
                         <div class="info-value">
                             <span id="output-dimensions">1000 × 1000 px</span>
+                            <button id="match-image-size-btn" class="btn btn-secondary" style="margin-left: 0.5rem; padding: 0.25rem 0.5rem; font-size: 0.85rem;" disabled>
+                                Match Image Size
+                            </button>
                         </div>
                     </div>
 
@@ -324,6 +369,13 @@
                     <div class="control-group">
                         <label for="image-upload">Upload Image:</label>
                         <input type="file" id="image-upload" accept="image/png,image/jpeg">
+                    </div>
+
+                    <div class="control-group info-display" id="image-info" style="display: none;">
+                        <label>Image Size:</label>
+                        <div class="info-value">
+                            <span id="image-dimensions">—</span>
+                        </div>
                     </div>
 
                     <div class="control-group">

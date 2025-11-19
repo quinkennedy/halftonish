@@ -77,6 +77,8 @@ const elements = {
     noiseParams: document.getElementById('noise-params'),
     bendayParams: document.getElementById('benday-params'),
     hilbertParams: document.getElementById('hilbert-params'),
+    peanoParams: document.getElementById('peano-params'),
+    zorderParams: document.getElementById('zorder-params'),
 
     // Random pattern controls
     randomDistribution: document.getElementById('random-distribution'),
@@ -145,6 +147,8 @@ const elements = {
 
     // Image halftone
     imageUpload: document.getElementById('image-upload'),
+    imageInfo: document.getElementById('image-info'),
+    imageDimensions: document.getElementById('image-dimensions'),
     halftoneMethod: document.getElementById('halftone-method'),
     applyHalftoneBtn: document.getElementById('apply-halftone-btn'),
     cancelHalftoneBtn: document.getElementById('cancel-halftone-btn'),
@@ -152,7 +156,10 @@ const elements = {
     halftoneProgressFill: document.getElementById('halftone-progress-fill'),
     halftoneProgressText: document.getElementById('halftone-progress-text'),
     resultCanvas: document.getElementById('result-canvas'),
-    downloadResultBtn: document.getElementById('download-result-btn')
+    downloadResultBtn: document.getElementById('download-result-btn'),
+
+    // Match image size button
+    matchImageSizeBtn: document.getElementById('match-image-size-btn')
 };
 
 /**
@@ -380,6 +387,8 @@ function updatePatternParameters() {
     elements.noiseParams.style.display = 'none';
     elements.bendayParams.style.display = 'none';
     elements.hilbertParams.style.display = 'none';
+    elements.peanoParams.style.display = 'none';
+    elements.zorderParams.style.display = 'none';
 
     // Show relevant parameter group
     switch (state.currentPattern) {
@@ -394,6 +403,12 @@ function updatePatternParameters() {
             break;
         case 'hilbert':
             elements.hilbertParams.style.display = 'block';
+            break;
+        case 'peano':
+            elements.peanoParams.style.display = 'block';
+            break;
+        case 'zorder':
+            elements.zorderParams.style.display = 'block';
             break;
     }
 }
@@ -425,6 +440,9 @@ function setupActionListeners() {
     // Darkness analysis
     elements.analyzeBtn.addEventListener('click', analyzeDarkness);
     elements.cancelAnalysisBtn.addEventListener('click', cancelAnalysis);
+
+    // Match image size button
+    elements.matchImageSizeBtn.addEventListener('click', matchImageSize);
 }
 
 /**
@@ -479,6 +497,18 @@ async function generatePattern() {
                 };
                 break;
             case 'hilbert':
+                params = {
+                    iterations: state.parameters.iterations,
+                    lineWidth: state.parameters.lineWidth
+                };
+                break;
+            case 'peano':
+                params = {
+                    iterations: state.parameters.iterations,
+                    lineWidth: state.parameters.lineWidth
+                };
+                break;
+            case 'zorder':
                 params = {
                     iterations: state.parameters.iterations,
                     lineWidth: state.parameters.lineWidth
@@ -650,8 +680,15 @@ async function handleImageUpload(e) {
             // Store image data
             state.uploadedImage = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
+            // Display image dimensions
+            elements.imageDimensions.textContent = `${img.width} × ${img.height} px`;
+            elements.imageInfo.style.display = 'flex';
+
             // Enable halftone button
             elements.applyHalftoneBtn.disabled = false;
+
+            // Enable match image size button
+            elements.matchImageSizeBtn.disabled = false;
 
             console.log('Image loaded:', img.width, 'x', img.height);
         };
@@ -789,6 +826,35 @@ function downloadResult() {
         a.click();
         URL.revokeObjectURL(url);
     });
+}
+
+/**
+ * Match pattern size to uploaded image size
+ */
+function matchImageSize() {
+    if (!state.uploadedImage) {
+        alert('Please upload an image first');
+        return;
+    }
+
+    const width = state.uploadedImage.width;
+    const height = state.uploadedImage.height;
+
+    // Switch to pixel mode
+    state.sizeConfig.mode = 'pixel';
+    document.querySelector('input[name="size-mode"][value="pixel"]').checked = true;
+    updateSizeModeUI();
+
+    // Set dimensions
+    state.sizeConfig.widthPx = width;
+    state.sizeConfig.heightPx = height;
+    elements.widthPx.value = width;
+    elements.heightPx.value = height;
+
+    // Update output display
+    updateOutputDimensions();
+
+    console.log('Pattern size matched to image:', width, 'x', height);
 }
 
 /**
