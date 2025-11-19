@@ -81,6 +81,24 @@ const elements = {
     zorderParams: document.getElementById('zorder-params'),
     gosperParams: document.getElementById('gosper-params'),
 
+    // Peano curve controls
+    peanoIterations: document.getElementById('peano-iterations'),
+    peanoIterationsValue: document.getElementById('peano-iterations-value'),
+    peanoLineWidth: document.getElementById('peano-line-width'),
+    peanoLineWidthValue: document.getElementById('peano-line-width-value'),
+
+    // Z-Order curve controls
+    zorderIterations: document.getElementById('zorder-iterations'),
+    zorderIterationsValue: document.getElementById('zorder-iterations-value'),
+    zorderLineWidth: document.getElementById('zorder-line-width'),
+    zorderLineWidthValue: document.getElementById('zorder-line-width-value'),
+
+    // Gosper curve controls
+    gosperIterations: document.getElementById('gosper-iterations'),
+    gosperIterationsValue: document.getElementById('gosper-iterations-value'),
+    gosperLineWidth: document.getElementById('gosper-line-width'),
+    gosperLineWidthValue: document.getElementById('gosper-line-width-value'),
+
     // Random pattern controls
     randomDistribution: document.getElementById('random-distribution'),
     randomSeed: document.getElementById('random-seed'),
@@ -254,7 +272,7 @@ function setupControlListeners() {
         });
     }
 
-    // Hilbert parameters (legacy, if needed)
+    // Hilbert parameters
     if (elements.iterationsSlider) {
         elements.iterationsSlider.addEventListener('input', (e) => {
             const value = parseInt(e.target.value);
@@ -267,6 +285,54 @@ function setupControlListeners() {
             const value = parseFloat(e.target.value);
             state.parameters.lineWidth = value;
             elements.lineWidthValue.textContent = value.toFixed(1);
+        });
+    }
+
+    // Peano curve parameters
+    if (elements.peanoIterations) {
+        elements.peanoIterations.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            state.parameters.iterations = value;
+            elements.peanoIterationsValue.textContent = value;
+        });
+    }
+    if (elements.peanoLineWidth) {
+        elements.peanoLineWidth.addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            state.parameters.lineWidth = value;
+            elements.peanoLineWidthValue.textContent = value.toFixed(1);
+        });
+    }
+
+    // Z-Order curve parameters
+    if (elements.zorderIterations) {
+        elements.zorderIterations.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            state.parameters.iterations = value;
+            elements.zorderIterationsValue.textContent = value;
+        });
+    }
+    if (elements.zorderLineWidth) {
+        elements.zorderLineWidth.addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            state.parameters.lineWidth = value;
+            elements.zorderLineWidthValue.textContent = value.toFixed(1);
+        });
+    }
+
+    // Gosper curve parameters
+    if (elements.gosperIterations) {
+        elements.gosperIterations.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            state.parameters.iterations = value;
+            elements.gosperIterationsValue.textContent = value;
+        });
+    }
+    if (elements.gosperLineWidth) {
+        elements.gosperLineWidth.addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            state.parameters.lineWidth = value;
+            elements.gosperLineWidthValue.textContent = value.toFixed(1);
         });
     }
 
