@@ -551,6 +551,25 @@ async function handlePatternImport(e) {
     console.log('Importing pattern for analysis:', file.name);
 
     try {
+        // Check if PDF or image
+        if (file.type === 'application/pdf') {
+            await loadPDFPattern(file);
+        } else if (file.type.startsWith('image/')) {
+            await loadImagePattern(file);
+        } else {
+            throw new Error('Unsupported file type. Please use PNG, JPG, or PDF.');
+        }
+    } catch (error) {
+        console.error('Pattern import failed:', error);
+        alert('Failed to import pattern: ' + error.message);
+    }
+}
+
+/**
+ * Load image pattern (PNG, JPG, etc.)
+ */
+async function loadImagePattern(file) {
+    return new Promise((resolve, reject) => {
         const img = new Image();
         img.onload = () => {
             // Draw to analysis canvas
@@ -571,16 +590,67 @@ async function handlePatternImport(e) {
             // Enable analyze button
             elements.analyzeBtn.disabled = false;
 
-            console.log('Pattern imported:', img.width, 'x', img.height);
+            console.log('Image pattern imported:', img.width, 'x', img.height);
+            resolve();
         };
         img.onerror = () => {
-            throw new Error('Failed to load pattern image');
+            reject(new Error('Failed to load pattern image'));
         };
         img.src = URL.createObjectURL(file);
-    } catch (error) {
-        console.error('Pattern import failed:', error);
-        alert('Failed to import pattern: ' + error.message);
+    });
+}
+
+/**
+ * Load PDF pattern (extract first page)
+ */
+async function loadPDFPattern(file) {
+    // Check if PDF.js is available
+    if (typeof pdfjsLib === 'undefined') {
+        throw new Error('PDF.js library not loaded');
     }
+
+    // Set worker source
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    // Read file as array buffer
+    const arrayBuffer = await file.arrayBuffer();
+
+    // Load PDF document
+    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+    const pdf = await loadingTask.promise;
+
+    console.log('PDF loaded:', pdf.numPages, 'pages');
+
+    // Get first page
+    const page = await pdf.getPage(1);
+
+    // Get viewport at scale 1
+    const viewport = page.getViewport({ scale: 1.0 });
+
+    // Prepare canvas
+    const canvas = elements.analysisCanvas;
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    const ctx = canvas.getContext('2d');
+
+    // Render page to canvas
+    await page.render({
+        canvasContext: ctx,
+        viewport: viewport
+    }).promise;
+
+    // Store image data
+    state.importedPattern = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+    // Update DPI in analysis config if physical mode
+    if (state.sizeConfig.mode === 'physical') {
+        state.analysisConfig.dpi = state.sizeConfig.dpi;
+    }
+
+    // Enable analyze button
+    elements.analyzeBtn.disabled = false;
+
+    console.log('PDF pattern imported:', canvas.width, 'x', canvas.height);
 }
 
 /**
