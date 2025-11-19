@@ -18,7 +18,33 @@ See `claude.md` for the complete SDLC workflow.
 
 ## ACTIVE Features
 
-No features currently in active development.
+### F3: Apply Halftone to Image
+**Priority:** P0
+**Status:** ACTIVE (Started: 2025-01-19)
+
+**Description:**
+Load an image and apply an SDF pattern as a halftone effect, producing a processed output image. Pattern tiles automatically if image is larger than pattern.
+
+**User Stories:**
+- As a user, I want to load a photo and apply a halftone pattern
+- As a user, I want to save the halftoned result
+- As a user, I want the pattern to tile if my image is larger
+
+**Acceptance Criteria:**
+- Supports common formats (JPEG, PNG)
+- Pattern tiles automatically when image > pattern
+- Threshold-based halftoning: output = (sourceGray < patternGray) ? BLACK : WHITE
+- Preserves aspect ratio
+- Output quality comparable to input
+- Non-blocking UI with progress feedback
+- Cancellation support
+
+**Technical Notes:**
+- Use File API for image upload
+- Convert RGB to grayscale via Canvas
+- Tile pattern to match image dimensions
+- Threshold-based halftoning
+- Web Worker for processing
 
 ---
 

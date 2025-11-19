@@ -665,6 +665,11 @@ async function applyHalftone() {
         return;
     }
 
+    if (!state.generatedPattern) {
+        alert('Please generate a pattern first');
+        return;
+    }
+
     // Update UI
     state.rendering.isApplying = true;
     elements.applyHalftoneBtn.disabled = true;
@@ -673,15 +678,53 @@ async function applyHalftone() {
     elements.downloadResultBtn.disabled = true;
 
     try {
-        // TODO: Implement worker-based halftone processing
-        // For now, show placeholder
-        updateHalftoneProgress(0);
+        // Get halftone method
+        const method = elements.halftoneMethod.value;
 
-        // Simulate progress
-        for (let i = 0; i <= 100; i += 10) {
-            await new Promise(resolve => setTimeout(resolve, 100));
-            updateHalftoneProgress(i / 100);
+        // Create worker if needed
+        if (!state.workers.halftone) {
+            state.workers.halftone = new Worker('./workers/halftone-worker.js');
         }
+
+        const worker = state.workers.halftone;
+
+        // Set up promise for worker completion
+        const result = await new Promise((resolve, reject) => {
+            // Message handler
+            const handleMessage = (e) => {
+                const { type, progress, imageData, message } = e.data;
+
+                if (type === 'progress') {
+                    updateHalftoneProgress(progress);
+                } else if (type === 'complete') {
+                    worker.removeEventListener('message', handleMessage);
+                    resolve(imageData);
+                } else if (type === 'error') {
+                    worker.removeEventListener('message', handleMessage);
+                    reject(new Error(message));
+                } else if (type === 'cancelled') {
+                    worker.removeEventListener('message', handleMessage);
+                    reject(new Error('Halftone cancelled'));
+                }
+            };
+
+            worker.addEventListener('message', handleMessage);
+
+            // Send apply request
+            worker.postMessage({
+                type: 'apply',
+                imageData: state.uploadedImage,
+                patternData: state.generatedPattern,
+                method: method
+            });
+        });
+
+        // Draw result to canvas
+        const canvas = elements.resultCanvas;
+        canvas.width = result.width;
+        canvas.height = result.height;
+        const ctx = canvas.getContext('2d');
+        ctx.putImageData(result, 0, 0);
 
         // Enable download
         elements.downloadResultBtn.disabled = false;
@@ -689,7 +732,9 @@ async function applyHalftone() {
         console.log('Halftone applied successfully');
     } catch (error) {
         console.error('Halftone application failed:', error);
-        alert('Failed to apply halftone: ' + error.message);
+        if (error.message !== 'Halftone cancelled') {
+            alert('Failed to apply halftone: ' + error.message);
+        }
     } finally {
         // Reset UI
         state.rendering.isApplying = false;
@@ -706,14 +751,9 @@ function cancelHalftone() {
     console.log('Cancelling halftone application');
 
     if (state.workers.halftone) {
-        state.workers.halftone.terminate();
-        state.workers.halftone = null;
+        // Send cancel message
+        state.workers.halftone.postMessage({ type: 'cancel' });
     }
-
-    state.rendering.isApplying = false;
-    elements.applyHalftoneBtn.disabled = false;
-    elements.cancelHalftoneBtn.style.display = 'none';
-    elements.halftoneProgress.style.display = 'none';
 }
 
 /**

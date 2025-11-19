@@ -3,75 +3,107 @@
  * Applies halftone effects to images without blocking the main thread
  */
 
+// Cancellation state
+let cancelToken = { cancelled: false };
+
 self.addEventListener('message', async (e) => {
     const { type, imageData, patternData, method } = e.data;
 
     if (type === 'apply') {
+        // Reset cancellation
+        cancelToken.cancelled = false;
+
         try {
-            await applyHalftone(imageData, patternData, method);
-        } catch (error) {
+            const result = await applyHalftone(imageData, patternData, method);
+
+            // Send completed result
             self.postMessage({
-                type: 'error',
-                message: error.message
-            });
+                type: 'complete',
+                imageData: result
+            }, [result.data.buffer]);
+        } catch (error) {
+            if (error.message === 'Halftone cancelled') {
+                self.postMessage({ type: 'cancelled' });
+            } else {
+                self.postMessage({
+                    type: 'error',
+                    message: error.message
+                });
+            }
         }
     } else if (type === 'cancel') {
-        // Handle cancellation
-        self.postMessage({ type: 'cancelled' });
+        // Set cancellation flag
+        cancelToken.cancelled = true;
     }
 });
 
 /**
- * Apply halftone effect
+ * Apply halftone effect with pattern tiling
+ * @param {ImageData} imageData - Source image
+ * @param {ImageData} patternData - Halftone pattern (will be tiled if smaller)
+ * @param {string} method - Halftoning method ('threshold' or 'blend')
+ * @returns {ImageData} Halftoned result
  */
 async function applyHalftone(imageData, patternData, method) {
-    const { width, height } = imageData;
-    const result = new ImageData(width, height);
-    const totalPixels = width * height;
-    const chunkSize = 10000;
+    const imgWidth = imageData.width;
+    const imgHeight = imageData.height;
+    const patWidth = patternData.width;
+    const patHeight = patternData.height;
 
-    for (let i = 0; i < totalPixels; i++) {
-        // Send progress updates
-        if (i % chunkSize === 0) {
+    const result = new ImageData(imgWidth, imgHeight);
+    const totalPixels = imgWidth * imgHeight;
+    const chunkSize = 10000; // Progress update interval
+
+    for (let y = 0; y < imgHeight; y++) {
+        // Check for cancellation
+        if (cancelToken.cancelled) {
+            throw new Error('Halftone cancelled');
+        }
+
+        for (let x = 0; x < imgWidth; x++) {
+            const pixelIndex = (y * imgWidth + x) * 4;
+
+            // Convert source image to grayscale
+            const gray = 0.299 * imageData.data[pixelIndex] +
+                        0.587 * imageData.data[pixelIndex + 1] +
+                        0.114 * imageData.data[pixelIndex + 2];
+
+            // Get pattern value with tiling
+            // Tile pattern by using modulo on coordinates
+            const patX = x % patWidth;
+            const patY = y % patHeight;
+            const patternIndex = (patY * patWidth + patX) * 4;
+            const patternValue = patternData.data[patternIndex]; // R channel (grayscale)
+
+            // Apply halftoning method
+            let output;
+            if (method === 'threshold') {
+                // Threshold: source < pattern => black, else white
+                output = gray < patternValue ? 0 : 255;
+            } else if (method === 'blend') {
+                // Multiplicative blend
+                output = Math.floor((gray * patternValue) / 255);
+            } else {
+                output = gray;
+            }
+
+            // Write result
+            result.data[pixelIndex] = output;     // R
+            result.data[pixelIndex + 1] = output; // G
+            result.data[pixelIndex + 2] = output; // B
+            result.data[pixelIndex + 3] = 255;    // A
+        }
+
+        // Send progress updates every N pixels
+        const processedPixels = (y + 1) * imgWidth;
+        if (processedPixels % chunkSize === 0) {
             self.postMessage({
                 type: 'progress',
-                progress: i / totalPixels
+                progress: processedPixels / totalPixels
             });
-
-            // Allow cancellation
-            await new Promise(resolve => setTimeout(resolve, 0));
         }
-
-        const idx = i * 4;
-
-        // Convert to grayscale
-        const gray = 0.299 * imageData.data[idx] +
-                     0.587 * imageData.data[idx + 1] +
-                     0.114 * imageData.data[idx + 2];
-
-        // Get pattern value
-        const patternValue = patternData.data[idx];
-
-        // Apply method
-        let output;
-        switch (method) {
-            case 'threshold':
-                output = gray > patternValue ? 255 : 0;
-                break;
-            case 'blend':
-                output = (gray * patternValue) / 255;
-                break;
-            default:
-                output = gray;
-        }
-
-        result.data[idx] = result.data[idx + 1] = result.data[idx + 2] = output;
-        result.data[idx + 3] = 255;
     }
 
-    // Send completed result
-    self.postMessage({
-        type: 'complete',
-        imageData: result
-    }, [result.data.buffer]);
+    return result;
 }
+
