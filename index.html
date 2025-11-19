@@ -139,6 +139,77 @@
                 </div>
             </section>
 
+            <!-- Darkness Analysis Section -->
+            <section class="panel">
+                <h2>Darkness Analysis</h2>
+
+                <div class="controls">
+                    <div class="control-group">
+                        <label for="import-pattern">Import Pattern to Analyze:</label>
+                        <input type="file" id="import-pattern" accept="image/png,image/jpeg">
+                    </div>
+
+                    <div class="control-group">
+                        <label for="analysis-radius">
+                            Analysis Radius: <span id="analysis-radius-value">0.125</span> in
+                        </label>
+                        <input type="range" id="analysis-radius" min="0.0625" max="0.5" value="0.125" step="0.0625">
+                    </div>
+
+                    <div class="control-group">
+                        <label for="upper-threshold">
+                            Too Dark Threshold: <span id="upper-threshold-value">70</span>%
+                        </label>
+                        <input type="range" id="upper-threshold" min="50" max="90" value="70" step="5">
+                    </div>
+
+                    <div class="control-group">
+                        <label for="lower-threshold">
+                            Too Light Threshold: <span id="lower-threshold-value">30</span>%
+                        </label>
+                        <input type="range" id="lower-threshold" min="10" max="50" value="30" step="5">
+                    </div>
+
+                    <div class="control-group checkbox">
+                        <label>
+                            <input type="checkbox" id="show-overlay" checked>
+                            Show Overlay
+                        </label>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button id="analyze-btn" class="btn btn-primary" disabled>Analyze Darkness</button>
+                    <button id="cancel-analysis-btn" class="btn btn-secondary" style="display: none;">Cancel</button>
+                </div>
+
+                <div id="analysis-progress" class="progress-container" style="display: none;">
+                    <div class="progress-bar">
+                        <div id="analysis-progress-fill" class="progress-fill"></div>
+                    </div>
+                    <p id="analysis-progress-text" class="progress-text">0%</p>
+                </div>
+
+                <div class="canvas-container">
+                    <canvas id="analysis-canvas"></canvas>
+                </div>
+
+                <div id="analysis-stats" class="stats-panel" style="display: none;">
+                    <h3>Analysis Results</h3>
+                    <div id="stats-content"></div>
+                    <div class="legend">
+                        <div class="legend-item">
+                            <span class="legend-color" style="background: rgba(255, 0, 0, 0.5);"></span>
+                            <span>Too Dark</span>
+                        </div>
+                        <div class="legend-item">
+                            <span class="legend-color" style="background: rgba(0, 255, 0, 0.5);"></span>
+                            <span>Too Light</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- Image Halftone Section -->
             <section class="panel">
                 <h2>Apply Halftone</h2>
