@@ -527,6 +527,17 @@ async function generatePattern() {
             });
         });
 
+        // Apply inversion if enabled
+        if (state.parameters.invert) {
+            const data = result.data;
+            for (let i = 0; i < data.length; i += 4) {
+                data[i] = 255 - data[i];         // R
+                data[i + 1] = 255 - data[i + 1]; // G
+                data[i + 2] = 255 - data[i + 2]; // B
+                // Alpha channel (i + 3) unchanged
+            }
+        }
+
         // Draw result to canvas
         const canvas = elements.patternCanvas;
         canvas.width = width;
