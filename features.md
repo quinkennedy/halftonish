@@ -20,7 +20,7 @@ See `claude.md` for the complete SDLC workflow.
 
 ### F1.5: Simple Halftone Patterns
 **Priority:** P0
-**Status:** PLANNING (Started: 2025-01-19)
+**Status:** ACTIVE (Started: 2025-01-19)
 
 **Description:**
 Implement three simple, immediately usable halftone patterns: Random, Noise, and Ben-Day Dots. These patterns provide functional output while more complex SDF patterns are developed, and allow testing of the complete workflow (generation → export → analysis).

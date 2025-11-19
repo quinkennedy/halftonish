@@ -10,11 +10,26 @@ import { generateOverlay, compositeOverlay, formatStats } from './analysis/overl
 
 // Application state
 const state = {
-    currentPattern: 'hilbert',
+    currentPattern: 'random',
     parameters: {
+        // Hilbert parameters (legacy)
         iterations: 5,
         lineWidth: 2.0,
-        invert: false
+        invert: false,
+        // Random parameters
+        randomDistribution: 'uniform',
+        randomSeed: undefined,
+        // Noise parameters
+        noiseScale: 1.0,
+        noiseOctaves: 4,
+        noisePersistence: 0.5,
+        noiseSeed: undefined,
+        // Ben-Day parameters
+        bendaySpacing: 20,
+        bendaySize: 0.7,
+        bendayShape: 'circle',
+        bendayGrid: 'square',
+        bendayAntialiasing: true
     },
     sizeConfig: {
         mode: 'pixel',
@@ -56,6 +71,34 @@ const elements = {
     lineWidthSlider: document.getElementById('line-width'),
     lineWidthValue: document.getElementById('line-width-value'),
     invertCheckbox: document.getElementById('invert'),
+
+    // Pattern parameter groups
+    randomParams: document.getElementById('random-params'),
+    noiseParams: document.getElementById('noise-params'),
+    bendayParams: document.getElementById('benday-params'),
+    hilbertParams: document.getElementById('hilbert-params'),
+
+    // Random pattern controls
+    randomDistribution: document.getElementById('random-distribution'),
+    randomSeed: document.getElementById('random-seed'),
+
+    // Noise pattern controls
+    noiseScale: document.getElementById('noise-scale'),
+    noiseScaleValue: document.getElementById('noise-scale-value'),
+    noiseOctaves: document.getElementById('noise-octaves'),
+    noiseOctavesValue: document.getElementById('noise-octaves-value'),
+    noisePersistence: document.getElementById('noise-persistence'),
+    noisePersistenceValue: document.getElementById('noise-persistence-value'),
+    noiseSeed: document.getElementById('noise-seed'),
+
+    // Ben-Day pattern controls
+    bendaySpacing: document.getElementById('benday-spacing'),
+    bendaySpacingValue: document.getElementById('benday-spacing-value'),
+    bendaySize: document.getElementById('benday-size'),
+    bendaySizeValue: document.getElementById('benday-size-value'),
+    bendayShape: document.getElementById('benday-shape'),
+    bendayGrid: document.getElementById('benday-grid'),
+    bendayAntialiasing: document.getElementById('benday-antialiasing'),
 
     // Size mode controls
     sizeModeRadios: document.getElementsByName('size-mode'),
@@ -122,6 +165,11 @@ function init() {
     setupControlListeners();
     setupActionListeners();
 
+    // Initialize UI state
+    updatePatternParameters();
+    updateSizeModeUI();
+    updateOutputDimensions();
+
     console.log('Application ready');
 }
 
@@ -132,21 +180,75 @@ function setupControlListeners() {
     // Pattern selection
     elements.patternSelect.addEventListener('change', (e) => {
         state.currentPattern = e.target.value;
+        updatePatternParameters();
     });
 
-    // Iterations slider
-    elements.iterationsSlider.addEventListener('input', (e) => {
-        const value = parseInt(e.target.value);
-        state.parameters.iterations = value;
-        elements.iterationsValue.textContent = value;
+    // Random pattern parameters
+    elements.randomDistribution.addEventListener('change', (e) => {
+        state.parameters.randomDistribution = e.target.value;
+    });
+    elements.randomSeed.addEventListener('input', (e) => {
+        const value = e.target.value;
+        state.parameters.randomSeed = value ? parseInt(value) : undefined;
     });
 
-    // Line width slider
-    elements.lineWidthSlider.addEventListener('input', (e) => {
+    // Noise pattern parameters
+    elements.noiseScale.addEventListener('input', (e) => {
         const value = parseFloat(e.target.value);
-        state.parameters.lineWidth = value;
-        elements.lineWidthValue.textContent = value.toFixed(1);
+        state.parameters.noiseScale = value;
+        elements.noiseScaleValue.textContent = value.toFixed(1);
     });
+    elements.noiseOctaves.addEventListener('input', (e) => {
+        const value = parseInt(e.target.value);
+        state.parameters.noiseOctaves = value;
+        elements.noiseOctavesValue.textContent = value;
+    });
+    elements.noisePersistence.addEventListener('input', (e) => {
+        const value = parseFloat(e.target.value);
+        state.parameters.noisePersistence = value;
+        elements.noisePersistenceValue.textContent = value.toFixed(2);
+    });
+    elements.noiseSeed.addEventListener('input', (e) => {
+        const value = e.target.value;
+        state.parameters.noiseSeed = value ? parseInt(value) : undefined;
+    });
+
+    // Ben-Day pattern parameters
+    elements.bendaySpacing.addEventListener('input', (e) => {
+        const value = parseInt(e.target.value);
+        state.parameters.bendaySpacing = value;
+        elements.bendaySpacingValue.textContent = value;
+    });
+    elements.bendaySize.addEventListener('input', (e) => {
+        const value = parseFloat(e.target.value);
+        state.parameters.bendaySize = value;
+        elements.bendaySizeValue.textContent = value.toFixed(2);
+    });
+    elements.bendayShape.addEventListener('change', (e) => {
+        state.parameters.bendayShape = e.target.value;
+    });
+    elements.bendayGrid.addEventListener('change', (e) => {
+        state.parameters.bendayGrid = e.target.value;
+    });
+    elements.bendayAntialiasing.addEventListener('change', (e) => {
+        state.parameters.bendayAntialiasing = e.target.checked;
+    });
+
+    // Hilbert parameters (legacy, if needed)
+    if (elements.iterationsSlider) {
+        elements.iterationsSlider.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            state.parameters.iterations = value;
+            elements.iterationsValue.textContent = value;
+        });
+    }
+    if (elements.lineWidthSlider) {
+        elements.lineWidthSlider.addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            state.parameters.lineWidth = value;
+            elements.lineWidthValue.textContent = value.toFixed(1);
+        });
+    }
 
     // Invert checkbox
     elements.invertCheckbox.addEventListener('change', (e) => {
@@ -262,6 +364,33 @@ function updateOutputDimensions() {
 }
 
 /**
+ * Update pattern parameter UI based on selected pattern
+ */
+function updatePatternParameters() {
+    // Hide all parameter groups
+    elements.randomParams.style.display = 'none';
+    elements.noiseParams.style.display = 'none';
+    elements.bendayParams.style.display = 'none';
+    elements.hilbertParams.style.display = 'none';
+
+    // Show relevant parameter group
+    switch (state.currentPattern) {
+        case 'random':
+            elements.randomParams.style.display = 'block';
+            break;
+        case 'noise':
+            elements.noiseParams.style.display = 'block';
+            break;
+        case 'benday':
+            elements.bendayParams.style.display = 'block';
+            break;
+        case 'hilbert':
+            elements.hilbertParams.style.display = 'block';
+            break;
+    }
+}
+
+/**
  * Setup action button listeners
  */
 function setupActionListeners() {
@@ -314,34 +443,91 @@ async function generatePattern() {
     elements.downloadPatternBtn.disabled = true;
 
     try {
-        // TODO: Implement worker-based pattern generation
-        // For now, show placeholder
-        updateGenerateProgress(0);
+        // Prepare pattern-specific parameters
+        let params = {};
 
-        // Simulate progress
-        for (let i = 0; i <= 100; i += 10) {
-            await new Promise(resolve => setTimeout(resolve, 100));
-            updateGenerateProgress(i / 100);
+        switch (state.currentPattern) {
+            case 'random':
+                params = {
+                    distribution: state.parameters.randomDistribution,
+                    seed: state.parameters.randomSeed
+                };
+                break;
+            case 'noise':
+                params = {
+                    scale: state.parameters.noiseScale,
+                    octaves: state.parameters.noiseOctaves,
+                    persistence: state.parameters.noisePersistence,
+                    seed: state.parameters.noiseSeed
+                };
+                break;
+            case 'benday':
+                params = {
+                    spacing: state.parameters.bendaySpacing,
+                    dotSize: state.parameters.bendaySize,
+                    shape: state.parameters.bendayShape,
+                    gridType: state.parameters.bendayGrid,
+                    antialiasing: state.parameters.bendayAntialiasing
+                };
+                break;
+            case 'hilbert':
+                params = {
+                    iterations: state.parameters.iterations,
+                    lineWidth: state.parameters.lineWidth
+                };
+                break;
         }
 
-        // Create placeholder canvas
+        console.log('Pattern params:', params);
+
+        // Create worker if needed
+        if (!state.workers.pattern) {
+            state.workers.pattern = new Worker('./workers/pattern-worker.js', { type: 'module' });
+        }
+
+        const worker = state.workers.pattern;
+
+        // Set up promise for worker completion
+        const result = await new Promise((resolve, reject) => {
+            // Message handler
+            const handleMessage = (e) => {
+                const { type, progress, imageData, message } = e.data;
+
+                if (type === 'progress') {
+                    updateGenerateProgress(progress);
+                } else if (type === 'complete') {
+                    worker.removeEventListener('message', handleMessage);
+                    resolve(imageData);
+                } else if (type === 'error') {
+                    worker.removeEventListener('message', handleMessage);
+                    reject(new Error(message));
+                } else if (type === 'cancelled') {
+                    worker.removeEventListener('message', handleMessage);
+                    reject(new Error('Generation cancelled'));
+                }
+            };
+
+            worker.addEventListener('message', handleMessage);
+
+            // Send render request
+            worker.postMessage({
+                type: 'render',
+                pattern: state.currentPattern,
+                params: params,
+                width: width,
+                height: height
+            });
+        });
+
+        // Draw result to canvas
         const canvas = elements.patternCanvas;
         canvas.width = width;
         canvas.height = height;
         const ctx = canvas.getContext('2d');
-
-        // Draw placeholder
-        ctx.fillStyle = '#f0f0f0';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = '#333';
-        ctx.font = '24px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('Pattern generation', canvas.width / 2, canvas.height / 2 - 20);
-        ctx.fillText('coming soon!', canvas.width / 2, canvas.height / 2 + 20);
-        ctx.fillText(`${width} × ${height} px`, canvas.width / 2, canvas.height / 2 + 40);
+        ctx.putImageData(result, 0, 0);
 
         // Store generated pattern
-        state.generatedPattern = ctx.getImageData(0, 0, width, height);
+        state.generatedPattern = result;
 
         // Copy to analysis canvas and enable analysis
         const analysisCanvas = elements.analysisCanvas;
@@ -357,7 +543,9 @@ async function generatePattern() {
         console.log('Pattern generated successfully:', width, 'x', height);
     } catch (error) {
         console.error('Pattern generation failed:', error);
-        alert('Failed to generate pattern: ' + error.message);
+        if (error.message !== 'Generation cancelled') {
+            alert('Failed to generate pattern: ' + error.message);
+        }
     } finally {
         // Reset UI
         state.rendering.isGenerating = false;
@@ -374,14 +562,9 @@ function cancelGenerate() {
     console.log('Cancelling pattern generation');
 
     if (state.workers.pattern) {
-        state.workers.pattern.terminate();
-        state.workers.pattern = null;
+        // Send cancel message
+        state.workers.pattern.postMessage({ type: 'cancel' });
     }
-
-    state.rendering.isGenerating = false;
-    elements.generateBtn.disabled = false;
-    elements.cancelGenerateBtn.style.display = 'none';
-    elements.generateProgress.style.display = 'none';
 }
 
 /**
