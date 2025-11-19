@@ -48,6 +48,83 @@ Implement Hilbert space-filling curve as the primary SDF pattern for halftoning.
 
 ## DONE Features
 
+### F16: Gosper/Flowsnake Curve Pattern ✓
+**Priority:** P2
+**Status:** DONE (Completed: 2025-01-19)
+
+**Description:**
+Hexagonal space-filling curve pattern using L-system generation.
+
+**User Stories:**
+- As a user, I want hexagonal patterns ✓
+- As a user, I want more variety in curve types ✓
+
+**Acceptance Criteria:**
+- Correct Gosper curve mathematics ✓
+- Tiles properly ✓
+- Same interface as other patterns ✓
+- Iterations 1-6 supported (7^n growth) ✓
+
+**Implementation:**
+- L-system generation with turtle graphics
+- 60-degree turns for hexagonal structure
+- Auto-normalization and centering
+- SDF rendering with configurable line width
+- Organic hexagonal meandering patterns
+
+**All acceptance criteria met. Pattern fully functional.**
+
+### F15: Multiple Halftone Methods ✓
+**Priority:** P2
+**Status:** DONE (Completed: 2025-01-19)
+
+**Description:**
+Alternative halftoning algorithms beyond basic threshold.
+
+**User Stories:**
+- As a user, I want dithered halftone for smoother gradients ✓
+- As a user, I want to experiment with different methods ✓
+
+**Acceptance Criteria:**
+- Multiple methods available ✓
+- All methods work with all patterns ✓
+- Visual quality difference visible ✓
+
+**Implemented Methods:**
+1. **Threshold** (default) - Simple pattern-based threshold
+2. **Blend** - Multiplicative blending
+3. **Floyd-Steinberg** - Error diffusion dithering for smooth gradients
+4. **Ordered Dithering** - Bayer matrix 8×8 for consistent patterns
+
+**All acceptance criteria met. All methods fully functional.**
+
+### F14: Contrast and Brightness Adjustment ✓
+**Priority:** P1
+**Status:** DONE (Completed: 2025-01-19)
+
+**Description:**
+Post-processing controls for halftoned images.
+
+**User Stories:**
+- As a user, I want to boost contrast in my halftone ✓
+- As a user, I want to adjust brightness ✓
+- As a user, I want fine control over the look ✓
+
+**Acceptance Criteria:**
+- Contrast parameter (-100 to 100) ✓
+- Brightness parameter (-100 to 100) ✓
+- Preserves quality ✓
+- Works with all halftone methods ✓
+
+**Implementation:**
+- Slider controls in halftone section
+- Applied as post-processing after halftoning
+- Standard contrast formula centered at 128
+- Additive brightness adjustment
+- Properly clamped to 0-255 range
+
+**All acceptance criteria met. Feature fully functional.**
+
 ### F10: Pattern Inversion ✓
 **Priority:** P1
 **Status:** DONE (Completed: 2025-01-19)
@@ -457,69 +534,7 @@ Support rectangular output, not just square.
 
 ---
 
-### F14: Contrast and Brightness Adjustment
-**Priority:** P1
-**Sprint:** 3
-
-**Description:**
-Post-processing controls for halftoned images.
-
-**User Stories:**
-- As a user, I want to boost contrast in my halftone
-- As a user, I want to adjust brightness
-- As a user, I want fine control over the look
-
-**Acceptance Criteria:**
-- `--contrast` parameter (-1.0 to 1.0)
-- `--brightness` parameter (-1.0 to 1.0)
-- Real-time preview (future)
-- Preserves quality
-
----
-
 ## TODO: Could Have Features
-
-### F15: Multiple Halftone Methods
-**Priority:** P2
-**Sprint:** 5
-
-**Description:**
-Alternative halftoning algorithms beyond basic threshold.
-
-**Methods:**
-1. Threshold (default)
-2. Error diffusion dithering
-3. Ordered dithering
-4. Blend mode (multiplicative)
-
-**User Stories:**
-- As a user, I want dithered halftone for smoother gradients
-- As a user, I want to experiment with different methods
-
-**Acceptance Criteria:**
-- `--method` parameter
-- All methods work with all patterns
-- Visual quality examples in docs
-
----
-
-### F16: Gosper/Flowsnake Curve Pattern
-**Priority:** P2
-**Sprint:** 5
-
-**Description:**
-Hexagonal space-filling curve pattern.
-
-**User Stories:**
-- As a user, I want hexagonal patterns
-- As a user, I want more variety in curve types
-
-**Acceptance Criteria:**
-- Correct Gosper curve mathematics
-- Tiles properly
-- Same interface as other patterns
-
----
 
 ### F17: Real-Time Parameter Preview
 **Priority:** P2
