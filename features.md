@@ -18,9 +18,15 @@ See `claude.md` for the complete SDLC workflow.
 
 ## ACTIVE Features
 
-### F1.5: Simple Halftone Patterns
+No features currently in active development.
+
+---
+
+## DONE Features
+
+### F1.5: Simple Halftone Patterns ✓
 **Priority:** P0
-**Status:** ACTIVE (Started: 2025-01-19)
+**Status:** DONE (Completed: 2025-01-19)
 
 **Description:**
 Implement three simple, immediately usable halftone patterns: Random, Noise, and Ben-Day Dots. These patterns provide functional output while more complex SDF patterns are developed, and allow testing of the complete workflow (generation → export → analysis).
@@ -61,15 +67,18 @@ Implement three simple, immediately usable halftone patterns: Random, Noise, and
 - Performance: 4K generation in <5s
 
 **Technical Notes:**
-- Use simplex-noise library for noise generation
-- Use seedrandom for reproducible random numbers
+- Self-contained Simplex noise implementation (no external dependencies)
+- Seeded PRNG using Mulberry32 algorithm
 - Ben-Day dots use SDF approach for clean rendering
-- Web Worker for all pattern generation
-- Unified PatternGenerator interface
+- Web Worker for all pattern generation with module support
+- Dynamic UI with pattern-specific parameters
 
----
+**Implemented Patterns:**
+1. **Random Pattern** - Pure random pixels with distribution control
+2. **Noise Pattern** - Smooth Simplex noise with multi-octave layering
+3. **Ben-Day Dots** - Classic halftone dots with grid and shape options
 
-## DONE Features
+**All acceptance criteria met. Patterns fully functional.**
 
 ### F1: Generate SDF Pattern Images ✓
 **Priority:** P0
