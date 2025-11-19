@@ -536,6 +536,103 @@ Support rectangular output, not just square.
 
 ## TODO: Could Have Features
 
+### F30: Color Separation with ICC Profiles
+**Priority:** P2
+**Sprint:** 7
+
+**Description:**
+Separate color images into individual channels (CMYK, RGB, or custom spot colors) for multi-channel halftoning. Support ICC color profiles for accurate color separation and conversion.
+
+**User Stories:**
+- As a print designer, I want to separate my image into CMYK channels
+- As a user, I want to apply different halftone patterns to each color channel
+- As a user, I want to import ICC profiles for accurate color conversion
+- As a user, I want to control each channel's halftone independently
+- As a user, I want to preview individual channels before final output
+
+**Acceptance Criteria:**
+- Import ICC profiles (.icc, .icm files)
+- Separate RGB to CMYK using ICC profile or standard conversion
+- Display each channel individually (C, M, Y, K preview)
+- Apply different patterns per channel
+- Control halftone parameters per channel (pattern type, iterations, line width)
+- Export individual channels as separate images
+- Export composite CMYK image
+- Support spot color separations (custom channels)
+- Maintain color accuracy with profile-based conversion
+
+**Technical Notes:**
+- ICC profile parsing (may require library like color.js or custom ICC reader)
+- RGB to CMYK conversion using ICC profiles
+- Per-channel halftone worker processing
+- Channel compositing for preview
+- Memory-efficient channel storage
+- Optional: Support for ICC v2 and v4 profiles
+- Fallback to standard RGB→CMYK conversion if no profile
+
+**UI Elements:**
+- ICC profile upload button
+- Channel selection (C, M, Y, K toggles)
+- Per-channel pattern and parameter controls
+- Channel preview grid (4-up view)
+- Composite preview with registration marks
+- Individual channel export buttons
+
+---
+
+### F31: Halftone Screen Angle Control
+**Priority:** P2
+**Sprint:** 7
+
+**Description:**
+Control the rotation angle of halftone patterns, particularly important for CMYK color separations to avoid moiré patterns. Traditional print angles: C=15°, M=75°, Y=0°, K=45°.
+
+**User Stories:**
+- As a print designer, I want to set screen angles for CMYK channels
+- As a user, I want to avoid moiré patterns in color halftones
+- As a user, I want to use traditional print angles (C=15°, M=75°, Y=0°, K=45°)
+- As a user, I want to experiment with custom angles for artistic effects
+- As a user, I want angle presets for common workflows
+
+**Acceptance Criteria:**
+- Angle control per pattern (0-360° or -90° to 90°)
+- Angle presets: "Traditional CMYK", "Newspaper", "Custom"
+- Visual angle indicator/dial in UI
+- Pattern rotation applied before halftoning
+- High-quality rotation (bicubic interpolation)
+- No edge artifacts from rotation
+- Works with all pattern types
+- Per-channel angle control (when used with F30)
+
+**Technical Notes:**
+- Canvas rotation transform or manual rotation algorithm
+- Coordinate transformation for SDF patterns
+- Bicubic interpolation for smooth rotation
+- Pre-rotate pattern before applying to image
+- Or: Rotate image coordinates during halftone application
+- Handle pattern edge wrapping/clipping
+- Performance: rotation may require caching
+
+**UI Elements:**
+- Angle slider (-90° to 90° or 0° to 360°)
+- Numeric angle input
+- Visual angle dial/compass
+- Preset buttons (Traditional, Newspaper, Custom)
+- Per-channel angle controls (with F30)
+- Live preview of rotated pattern
+
+**Traditional Screen Angles:**
+- Cyan (C): 15° (or 105°)
+- Magenta (M): 75° (or 165°)
+- Yellow (Y): 0° (or 90°)
+- Black (K): 45° (or 135°)
+
+**Dependencies:**
+- Works independently but optimal with F30 (Color Separation)
+- Enhanced by F17 (Real-Time Preview) for angle adjustment feedback
+
+---
+
 ### F17: Real-Time Parameter Preview
 **Priority:** P2
 **Sprint:** 5
