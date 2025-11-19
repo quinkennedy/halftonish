@@ -5,14 +5,17 @@
 
 /**
  * Generate overlay canvas from darkness analysis results
- * @param {Object} analysisResult - Result from DarknessAnalyzer
+ * @param {Float32Array} darknessMap - Darkness values for each sample
+ * @param {number} samplesWide - Number of samples horizontally
+ * @param {number} samplesHigh - Number of samples vertically
+ * @param {number} stride - Stride between samples
  * @param {number} width - Original image width
  * @param {number} height - Original image height
+ * @param {number} upperThreshold - Upper darkness threshold
+ * @param {number} lowerThreshold - Lower darkness threshold
  * @returns {HTMLCanvasElement} Canvas with overlay
  */
-export function generateOverlay(analysisResult, width, height) {
-    const { darknessMap, stride, samplesWide, samplesHigh, config } = analysisResult;
-
+export function generateOverlay(darknessMap, samplesWide, samplesHigh, stride, width, height, upperThreshold, lowerThreshold) {
     // Create overlay canvas
     const canvas = document.createElement('canvas');
     canvas.width = width;
@@ -40,16 +43,16 @@ export function generateOverlay(analysisResult, width, height) {
             const pixelIndex = (y * width + x) * 4;
 
             // Determine overlay color
-            if (darkness > config.upperThreshold) {
+            if (darkness > upperThreshold) {
                 // Too dark - red overlay
-                const intensity = Math.min(1, (darkness - config.upperThreshold) / (1 - config.upperThreshold));
+                const intensity = Math.min(1, (darkness - upperThreshold) / (1 - upperThreshold));
                 overlayData.data[pixelIndex] = 255;         // R
                 overlayData.data[pixelIndex + 1] = 0;       // G
                 overlayData.data[pixelIndex + 2] = 0;       // B
                 overlayData.data[pixelIndex + 3] = Math.floor(intensity * 128); // A (50% max)
-            } else if (darkness < config.lowerThreshold) {
+            } else if (darkness < lowerThreshold) {
                 // Too light - green overlay
-                const intensity = Math.min(1, (config.lowerThreshold - darkness) / config.lowerThreshold);
+                const intensity = Math.min(1, (lowerThreshold - darkness) / lowerThreshold);
                 overlayData.data[pixelIndex] = 0;           // R
                 overlayData.data[pixelIndex + 1] = 255;     // G
                 overlayData.data[pixelIndex + 2] = 0;       // B
