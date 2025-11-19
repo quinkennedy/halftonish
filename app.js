@@ -219,20 +219,28 @@ function setupControlListeners() {
         state.parameters.bendaySpacing = value;
         elements.bendaySpacingValue.textContent = value;
     });
-    elements.bendaySize.addEventListener('input', (e) => {
-        const value = parseFloat(e.target.value);
-        state.parameters.bendaySize = value;
-        elements.bendaySizeValue.textContent = value.toFixed(2);
-    });
+
+    // bendaySize and bendayAntialiasing are hidden in UI (not used for linear SDF)
+    if (elements.bendaySize) {
+        elements.bendaySize.addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            state.parameters.bendaySize = value;
+            elements.bendaySizeValue.textContent = value.toFixed(2);
+        });
+    }
+
     elements.bendayShape.addEventListener('change', (e) => {
         state.parameters.bendayShape = e.target.value;
     });
     elements.bendayGrid.addEventListener('change', (e) => {
         state.parameters.bendayGrid = e.target.value;
     });
-    elements.bendayAntialiasing.addEventListener('change', (e) => {
-        state.parameters.bendayAntialiasing = e.target.checked;
-    });
+
+    if (elements.bendayAntialiasing) {
+        elements.bendayAntialiasing.addEventListener('change', (e) => {
+            state.parameters.bendayAntialiasing = e.target.checked;
+        });
+    }
 
     // Hilbert parameters (legacy, if needed)
     if (elements.iterationsSlider) {
