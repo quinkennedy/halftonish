@@ -86,15 +86,15 @@ function getDotValue(distance, radius, shape, antialiasing) {
 }
 
 /**
- * Generate Ben-Day dots pattern
+ * Generate Ben-Day dots pattern as SDF (Signed Distance Field)
  * @param {number} width - Width in pixels
  * @param {number} height - Height in pixels
  * @param {Object} params - Pattern parameters
  * @param {number} params.spacing - Dot spacing in pixels
- * @param {number} params.dotSize - Dot size relative to spacing (0.0-1.0)
+ * @param {number} params.dotSize - Controls gradient steepness (0.0-1.0)
  * @param {string} params.shape - 'circle', 'square', or 'diamond'
  * @param {string} params.gridType - 'square' or 'hexagonal'
- * @param {boolean} params.antialiasing - Enable smooth edges
+ * @param {boolean} params.antialiasing - Not used for SDF (kept for compatibility)
  * @param {Function} onProgress - Progress callback (0-1)
  * @param {Object} cancelToken - Cancellation token {cancelled: boolean}
  * @returns {ImageData} Generated pattern
@@ -108,12 +108,12 @@ export function generateBendayPattern(width, height, params, onProgress, cancelT
         antialiasing = true
     } = params;
 
-    // Calculate dot radius
-    const radius = (spacing / 2) * dotSize;
-
     // Create ImageData
     const imageData = new ImageData(width, height);
     const data = imageData.data;
+
+    // Maximum distance we expect (half the spacing to the next dot)
+    const maxDist = spacing / 2;
 
     // Process row by row for progress updates
     for (let y = 0; y < height; y++) {
@@ -131,11 +131,22 @@ export function generateBendayPattern(width, height, params, onProgress, cancelT
                 distance = squareGridDistance(x, y, spacing);
             }
 
-            // Calculate dot value
-            const value = getDotValue(distance, radius, shape, antialiasing);
+            // Normalize distance to 0-1 range
+            // Distance 0 (at dot center) -> 0
+            // Distance maxDist (furthest point) -> 1
+            let normalizedDist = distance / maxDist;
 
-            // Convert to 0-255 grayscale (inverted: dots are dark)
-            const gray = Math.floor((1.0 - value) * 255);
+            // Apply dotSize as a power curve to control gradient steepness
+            // Higher dotSize = steeper gradient (sharper dots when halftoned)
+            // Lower dotSize = gentler gradient (softer dots when halftoned)
+            const steepness = 0.5 + (dotSize * 1.5); // Map 0-1 to 0.5-2.0
+            normalizedDist = Math.pow(normalizedDist, steepness);
+
+            // Clamp to 0-1
+            normalizedDist = Math.max(0, Math.min(1, normalizedDist));
+
+            // Convert to grayscale: 0 = black (at dot center), 255 = white (far from dot)
+            const gray = Math.floor(normalizedDist * 255);
 
             const idx = (y * width + x) * 4;
             data[idx] = gray;     // R
