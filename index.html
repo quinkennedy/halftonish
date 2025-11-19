@@ -77,6 +77,9 @@
 
                     <!-- Ben-Day Dots Parameters -->
                     <div id="benday-params" class="pattern-params" style="display: none;">
+                        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.75rem;">
+                            Generates a distance field from a grid of points. When halftoned, produces classic dot screening.
+                        </p>
                         <div class="control-group">
                             <label for="benday-spacing">
                                 Dot Spacing (px): <span id="benday-spacing-value">20</span>
@@ -88,6 +91,9 @@
                                 Dot Size: <span id="benday-size-value">0.70</span>
                             </label>
                             <input type="range" id="benday-size" min="0.1" max="1.0" value="0.7" step="0.05">
+                            <span style="font-size: 0.8rem; color: var(--text-secondary);">
+                                Controls gradient steepness (higher = sharper dots)
+                            </span>
                         </div>
                         <div class="control-group">
                             <label for="benday-shape">Dot Shape:</label>
