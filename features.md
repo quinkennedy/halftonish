@@ -18,66 +18,60 @@ See `claude.md` for the complete SDLC workflow.
 
 ## ACTIVE Features
 
-### F1: Generate SDF Pattern Images
-**Priority:** P0
-**Status:** ACTIVE (Started: 2025-01-XX)
-
-**Description:**
-Generate grayscale images of signed distance field patterns that can be exported and used for halftoning. Includes flexible sizing options (pixels or physical dimensions + DPI), multiple export formats (PNG, PDF), and a darkness analysis tool to verify pattern quality.
-
-**User Stories:**
-- As a user, I want to generate a Hilbert curve pattern at a specified resolution
-- As a user, I want to specify size in pixels (e.g., 1000x1000px) OR physical dimensions + DPI (e.g., 8.5"x11" @ 300dpi)
-- As a user, I want to save the pattern as PNG or PDF
-- As a user, I want to specify the line width and iterations
-- As a user, I want to analyze pattern darkness distribution to ensure quality
-- As a user, I want to import existing halftone patterns to analyze them
-
-**Acceptance Criteria:**
-- Can generate patterns at resolutions from 256x256 to 4096x4096
-- Support pixel-based sizing (width x height in pixels)
-- Support physical sizing (width x height in inches/mm + DPI)
-- Output is grayscale PNG with values 0-255
-- Export to PDF with embedded pattern
-- Line width and iterations are configurable
-- Darkness analysis tool shows red (too dark) and green (too light) overlays
-- Analysis uses configurable radius (default 1/8" at current DPI)
-- Can import patterns (PNG/PDF) for analysis
-- Generation completes in <5s for 4K resolution
-
-**Technical Notes:**
-- Use Canvas API with ImageData for pixel operations
-- Implement coordinate normalization
-- Web Worker for non-blocking rendering
-- Support both square and rectangular dimensions
-- PDF generation via jsPDF library
-- Darkness analysis: sliding window convolution over pixel grid
-- Color overlay for visualization (red/green gradient based on local darkness)
-
-**Enhanced Requirements:**
-1. **Size Input Options:**
-   - Pixel mode: Direct width/height input
-   - Physical mode: Dimensions (in/mm) + DPI → calculate pixels
-   - Toggle between modes in UI
-
-2. **PDF Export:**
-   - Use jsPDF library for client-side PDF generation
-   - Embed pattern as high-quality image in PDF
-   - Include metadata (pattern type, parameters, size, DPI)
-
-3. **Darkness Analysis Tool:**
-   - Analyze local pixel density in circular regions
-   - Radius: 1/8" (configurable) - converted to pixels based on DPI
-   - For each point: count dark vs light pixels in radius
-   - Visualize: Red overlay = too dark, Green = too light, Gray = balanced
-   - Adjustable threshold for "too dark" / "too light"
-   - Can analyze both generated patterns and imported images
+No features currently in active development.
 
 ---
 
 ## DONE Features
 
-No features completed yet.
+### F1: Generate SDF Pattern Images ✓
+**Priority:** P0
+**Status:** DONE (Completed: 2025-01-19)
+
+**Description:**
+Generate grayscale images of signed distance field patterns that can be exported and used for halftoning. Includes flexible sizing options (pixels or physical dimensions + DPI), multiple export formats (PNG, PDF), and a darkness analysis tool to verify pattern quality.
+
+**User Stories:**
+- As a user, I want to generate a Hilbert curve pattern at a specified resolution ✓
+- As a user, I want to specify size in pixels (e.g., 1000x1000px) OR physical dimensions + DPI (e.g., 8.5"x11" @ 300dpi) ✓
+- As a user, I want to save the pattern as PNG or PDF ✓
+- As a user, I want to specify the line width and iterations ✓
+- As a user, I want to analyze pattern darkness distribution to ensure quality ✓
+- As a user, I want to import existing halftone patterns to analyze them ✓
+
+**Acceptance Criteria:**
+- Can generate patterns at resolutions from 256x256 to 4096x4096 ✓
+- Support pixel-based sizing (width x height in pixels) ✓
+- Support physical sizing (width x height in inches/mm + DPI) ✓
+- Output is grayscale PNG with values 0-255 ✓
+- Export to PDF with embedded pattern ✓
+- Line width and iterations are configurable ✓
+- Darkness analysis tool shows red (too dark) and green (too light) overlays ✓
+- Analysis uses configurable radius (default 1/8" at current DPI) ✓
+- Can import patterns (PNG/PDF) for analysis ✓
+- Generation completes in <5s for 4K resolution ✓
+
+**Technical Implementation:**
+- Canvas API with ImageData for pixel operations
+- Coordinate normalization system
+- Web Worker for non-blocking rendering
+- Support for square and rectangular dimensions
+- PDF generation via jsPDF library
+- PDF import via PDF.js library
+- Darkness analysis: circular sampling with configurable radius
+- Color overlay for visualization (red/green based on local darkness)
+- Real-time size calculation and validation
+- Progress feedback for all operations
+- Cancellation support
+
+**Implemented Features:**
+1. **Size Calculator Utility** - Dual-mode sizing (pixel/physical) with validation
+2. **PDF Export** - High-quality PDF generation with metadata page
+3. **Darkness Analysis Worker** - Non-blocking analysis with progress reporting
+4. **Overlay Renderer** - Red/green visualization of darkness distribution
+5. **Pattern Import** - Support for PNG, JPG, and PDF pattern import
+6. **Analysis Controller** - Complete UI integration with event handling
+7. **Help Text** - User guidance throughout interface
 
 ---
 
