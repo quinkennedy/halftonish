@@ -5,6 +5,8 @@
 
 import { SizeCalculator } from './utils/size-calculator.js';
 import { exportPatternToPDF, getMetadataFromState } from './utils/pdf-export.js';
+import { DarknessAnalyzer, getDefaultAnalysisConfig } from './analysis/darkness-analyzer.js';
+import { generateOverlay, compositeOverlay, formatStats } from './analysis/overlay-renderer.js';
 
 // Application state
 const state = {
@@ -28,15 +30,21 @@ const state = {
     rendering: {
         isGenerating: false,
         isApplying: false,
+        isAnalyzing: false,
         progress: 0
     },
     uploadedImage: null,
     generatedPattern: null,
     exportFormat: 'png',
+    analysisConfig: getDefaultAnalysisConfig(300),
+    analysisResult: null,
+    showOverlay: true,
+    importedPattern: null,
     workers: {
         pattern: null,
         halftone: null
-    }
+    },
+    analyzer: new DarknessAnalyzer()
 };
 
 // DOM elements
@@ -73,6 +81,24 @@ const elements = {
     generateProgressText: document.getElementById('generate-progress-text'),
     patternCanvas: document.getElementById('pattern-canvas'),
     downloadPatternBtn: document.getElementById('download-pattern-btn'),
+
+    // Darkness analysis
+    importPattern: document.getElementById('import-pattern'),
+    analysisRadiusSlider: document.getElementById('analysis-radius'),
+    analysisRadiusValue: document.getElementById('analysis-radius-value'),
+    upperThresholdSlider: document.getElementById('upper-threshold'),
+    upperThresholdValue: document.getElementById('upper-threshold-value'),
+    lowerThresholdSlider: document.getElementById('lower-threshold'),
+    lowerThresholdValue: document.getElementById('lower-threshold-value'),
+    showOverlayCheckbox: document.getElementById('show-overlay'),
+    analyzeBtn: document.getElementById('analyze-btn'),
+    cancelAnalysisBtn: document.getElementById('cancel-analysis-btn'),
+    analysisProgress: document.getElementById('analysis-progress'),
+    analysisProgressFill: document.getElementById('analysis-progress-fill'),
+    analysisProgressText: document.getElementById('analysis-progress-text'),
+    analysisCanvas: document.getElementById('analysis-canvas'),
+    analysisStats: document.getElementById('analysis-stats'),
+    statsContent: document.getElementById('stats-content'),
 
     // Image halftone
     imageUpload: document.getElementById('image-upload'),
