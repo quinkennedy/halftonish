@@ -77,6 +77,8 @@ const elements = {
     noiseParams: document.getElementById('noise-params'),
     bendayParams: document.getElementById('benday-params'),
     hilbertParams: document.getElementById('hilbert-params'),
+    peanoParams: document.getElementById('peano-params'),
+    zorderParams: document.getElementById('zorder-params'),
 
     // Random pattern controls
     randomDistribution: document.getElementById('random-distribution'),
@@ -385,6 +387,8 @@ function updatePatternParameters() {
     elements.noiseParams.style.display = 'none';
     elements.bendayParams.style.display = 'none';
     elements.hilbertParams.style.display = 'none';
+    elements.peanoParams.style.display = 'none';
+    elements.zorderParams.style.display = 'none';
 
     // Show relevant parameter group
     switch (state.currentPattern) {
@@ -399,6 +403,12 @@ function updatePatternParameters() {
             break;
         case 'hilbert':
             elements.hilbertParams.style.display = 'block';
+            break;
+        case 'peano':
+            elements.peanoParams.style.display = 'block';
+            break;
+        case 'zorder':
+            elements.zorderParams.style.display = 'block';
             break;
     }
 }
@@ -487,6 +497,18 @@ async function generatePattern() {
                 };
                 break;
             case 'hilbert':
+                params = {
+                    iterations: state.parameters.iterations,
+                    lineWidth: state.parameters.lineWidth
+                };
+                break;
+            case 'peano':
+                params = {
+                    iterations: state.parameters.iterations,
+                    lineWidth: state.parameters.lineWidth
+                };
+                break;
+            case 'zorder':
                 params = {
                     iterations: state.parameters.iterations,
                     lineWidth: state.parameters.lineWidth
