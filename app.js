@@ -343,8 +343,16 @@ async function generatePattern() {
         // Store generated pattern
         state.generatedPattern = ctx.getImageData(0, 0, width, height);
 
-        // Enable download
+        // Copy to analysis canvas and enable analysis
+        const analysisCanvas = elements.analysisCanvas;
+        analysisCanvas.width = width;
+        analysisCanvas.height = height;
+        const analysisCtx = analysisCanvas.getContext('2d');
+        analysisCtx.putImageData(state.generatedPattern, 0, 0);
+
+        // Enable download and analysis
         elements.downloadPatternBtn.disabled = false;
+        elements.analyzeBtn.disabled = false;
 
         console.log('Pattern generated successfully:', width, 'x', height);
     } catch (error) {
