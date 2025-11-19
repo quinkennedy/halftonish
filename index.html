@@ -198,6 +198,9 @@
                         <label>Output Size:</label>
                         <div class="info-value">
                             <span id="output-dimensions">1000 × 1000 px</span>
+                            <button id="match-image-size-btn" class="btn btn-secondary" style="margin-left: 0.5rem; padding: 0.25rem 0.5rem; font-size: 0.85rem;" disabled>
+                                Match Image Size
+                            </button>
                         </div>
                     </div>
 
@@ -324,6 +327,13 @@
                     <div class="control-group">
                         <label for="image-upload">Upload Image:</label>
                         <input type="file" id="image-upload" accept="image/png,image/jpeg">
+                    </div>
+
+                    <div class="control-group info-display" id="image-info" style="display: none;">
+                        <label>Image Size:</label>
+                        <div class="info-value">
+                            <span id="image-dimensions">—</span>
+                        </div>
                     </div>
 
                     <div class="control-group">
