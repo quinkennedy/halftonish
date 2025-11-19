@@ -87,12 +87,13 @@ function getDotValue(distance, radius, shape, antialiasing) {
 
 /**
  * Generate Ben-Day dots pattern as SDF (Signed Distance Field)
+ * Linear gradient from dot centers to grid cell corners
  * @param {number} width - Width in pixels
  * @param {number} height - Height in pixels
  * @param {Object} params - Pattern parameters
  * @param {number} params.spacing - Dot spacing in pixels
- * @param {number} params.dotSize - Controls gradient steepness (0.0-1.0)
- * @param {string} params.shape - 'circle', 'square', or 'diamond'
+ * @param {number} params.dotSize - Not used for linear SDF (kept for compatibility)
+ * @param {string} params.shape - 'circle', 'square', or 'diamond' (future use)
  * @param {string} params.gridType - 'square' or 'hexagonal'
  * @param {boolean} params.antialiasing - Not used for SDF (kept for compatibility)
  * @param {Function} onProgress - Progress callback (0-1)
@@ -112,8 +113,17 @@ export function generateBendayPattern(width, height, params, onProgress, cancelT
     const imageData = new ImageData(width, height);
     const data = imageData.data;
 
-    // Maximum distance we expect (half the spacing to the next dot)
-    const maxDist = spacing / 2;
+    // Maximum distance from dot center to furthest point in grid cell
+    // For square grid: diagonal from center to corner = spacing / sqrt(2)
+    // For hexagonal grid: distance to cell edge
+    let maxDist;
+    if (gridType === 'hexagonal') {
+        // For hex grid, furthest point is at edge
+        maxDist = spacing / 2;
+    } else {
+        // For square grid, furthest point is at diagonal corner
+        maxDist = spacing / Math.sqrt(2);
+    }
 
     // Process row by row for progress updates
     for (let y = 0; y < height; y++) {
@@ -131,21 +141,15 @@ export function generateBendayPattern(width, height, params, onProgress, cancelT
                 distance = squareGridDistance(x, y, spacing);
             }
 
-            // Normalize distance to 0-1 range
+            // Linear gradient: normalize distance to 0-1 range
             // Distance 0 (at dot center) -> 0
-            // Distance maxDist (furthest point) -> 1
+            // Distance maxDist (at grid cell corner) -> 1
             let normalizedDist = distance / maxDist;
-
-            // Apply dotSize as a power curve to control gradient steepness
-            // Higher dotSize = steeper gradient (sharper dots when halftoned)
-            // Lower dotSize = gentler gradient (softer dots when halftoned)
-            const steepness = 0.5 + (dotSize * 1.5); // Map 0-1 to 0.5-2.0
-            normalizedDist = Math.pow(normalizedDist, steepness);
 
             // Clamp to 0-1
             normalizedDist = Math.max(0, Math.min(1, normalizedDist));
 
-            // Convert to grayscale: 0 = black (at dot center), 255 = white (far from dot)
+            // Convert to grayscale: 0 = black (at dot center), 255 = white (at corners)
             const gray = Math.floor(normalizedDist * 255);
 
             const idx = (y * width + x) * 4;
