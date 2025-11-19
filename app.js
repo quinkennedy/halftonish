@@ -230,7 +230,17 @@ function setupActionListeners() {
  * Generate pattern
  */
 async function generatePattern() {
-    console.log('Generating pattern:', state.currentPattern, state.parameters);
+    console.log('Generating pattern:', state.currentPattern, state.parameters, state.sizeConfig);
+
+    // Validate size
+    const sizeResult = SizeCalculator.calculatePixelDimensions(state.sizeConfig);
+    if (!sizeResult.valid) {
+        alert('Invalid size: ' + sizeResult.error);
+        return;
+    }
+
+    const width = sizeResult.width;
+    const height = sizeResult.height;
 
     // Update UI
     state.rendering.isGenerating = true;
@@ -252,8 +262,8 @@ async function generatePattern() {
 
         // Create placeholder canvas
         const canvas = elements.patternCanvas;
-        canvas.width = state.parameters.size;
-        canvas.height = state.parameters.size;
+        canvas.width = width;
+        canvas.height = height;
         const ctx = canvas.getContext('2d');
 
         // Draw placeholder
@@ -264,11 +274,15 @@ async function generatePattern() {
         ctx.textAlign = 'center';
         ctx.fillText('Pattern generation', canvas.width / 2, canvas.height / 2 - 20);
         ctx.fillText('coming soon!', canvas.width / 2, canvas.height / 2 + 20);
+        ctx.fillText(`${width} × ${height} px`, canvas.width / 2, canvas.height / 2 + 40);
+
+        // Store generated pattern
+        state.generatedPattern = ctx.getImageData(0, 0, width, height);
 
         // Enable download
         elements.downloadPatternBtn.disabled = false;
 
-        console.log('Pattern generated successfully');
+        console.log('Pattern generated successfully:', width, 'x', height);
     } catch (error) {
         console.error('Pattern generation failed:', error);
         alert('Failed to generate pattern: ' + error.message);
