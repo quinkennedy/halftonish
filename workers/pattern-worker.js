@@ -9,6 +9,7 @@ import { generateBendayPattern } from '../patterns/benday-pattern.js';
 import { generateHilbertPattern } from '../patterns/hilbert-pattern.js';
 import { generatePeanoPattern } from '../patterns/peano-pattern.js';
 import { generateZOrderPattern } from '../patterns/zorder-pattern.js';
+import { generateGosperPattern } from '../patterns/gosper-pattern.js';
 
 // Cancellation state
 let cancelToken = { cancelled: false };
@@ -83,6 +84,10 @@ async function renderPattern(patternType, params, width, height) {
 
         case 'zorder':
             imageData = generateZOrderPattern(width, height, params, onProgress, cancelToken);
+            break;
+
+        case 'gosper':
+            imageData = generateGosperPattern(width, height, params, onProgress, cancelToken);
             break;
 
         default:

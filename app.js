@@ -79,6 +79,25 @@ const elements = {
     hilbertParams: document.getElementById('hilbert-params'),
     peanoParams: document.getElementById('peano-params'),
     zorderParams: document.getElementById('zorder-params'),
+    gosperParams: document.getElementById('gosper-params'),
+
+    // Peano curve controls
+    peanoIterations: document.getElementById('peano-iterations'),
+    peanoIterationsValue: document.getElementById('peano-iterations-value'),
+    peanoLineWidth: document.getElementById('peano-line-width'),
+    peanoLineWidthValue: document.getElementById('peano-line-width-value'),
+
+    // Z-Order curve controls
+    zorderIterations: document.getElementById('zorder-iterations'),
+    zorderIterationsValue: document.getElementById('zorder-iterations-value'),
+    zorderLineWidth: document.getElementById('zorder-line-width'),
+    zorderLineWidthValue: document.getElementById('zorder-line-width-value'),
+
+    // Gosper curve controls
+    gosperIterations: document.getElementById('gosper-iterations'),
+    gosperIterationsValue: document.getElementById('gosper-iterations-value'),
+    gosperLineWidth: document.getElementById('gosper-line-width'),
+    gosperLineWidthValue: document.getElementById('gosper-line-width-value'),
 
     // Random pattern controls
     randomDistribution: document.getElementById('random-distribution'),
@@ -150,6 +169,10 @@ const elements = {
     imageInfo: document.getElementById('image-info'),
     imageDimensions: document.getElementById('image-dimensions'),
     halftoneMethod: document.getElementById('halftone-method'),
+    halftoneContrast: document.getElementById('halftone-contrast'),
+    halftoneContrastValue: document.getElementById('halftone-contrast-value'),
+    halftoneBrightness: document.getElementById('halftone-brightness'),
+    halftoneBrightnessValue: document.getElementById('halftone-brightness-value'),
     applyHalftoneBtn: document.getElementById('apply-halftone-btn'),
     cancelHalftoneBtn: document.getElementById('cancel-halftone-btn'),
     halftoneProgress: document.getElementById('halftone-progress'),
@@ -249,7 +272,7 @@ function setupControlListeners() {
         });
     }
 
-    // Hilbert parameters (legacy, if needed)
+    // Hilbert parameters
     if (elements.iterationsSlider) {
         elements.iterationsSlider.addEventListener('input', (e) => {
             const value = parseInt(e.target.value);
@@ -262,6 +285,54 @@ function setupControlListeners() {
             const value = parseFloat(e.target.value);
             state.parameters.lineWidth = value;
             elements.lineWidthValue.textContent = value.toFixed(1);
+        });
+    }
+
+    // Peano curve parameters
+    if (elements.peanoIterations) {
+        elements.peanoIterations.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            state.parameters.iterations = value;
+            elements.peanoIterationsValue.textContent = value;
+        });
+    }
+    if (elements.peanoLineWidth) {
+        elements.peanoLineWidth.addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            state.parameters.lineWidth = value;
+            elements.peanoLineWidthValue.textContent = value.toFixed(1);
+        });
+    }
+
+    // Z-Order curve parameters
+    if (elements.zorderIterations) {
+        elements.zorderIterations.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            state.parameters.iterations = value;
+            elements.zorderIterationsValue.textContent = value;
+        });
+    }
+    if (elements.zorderLineWidth) {
+        elements.zorderLineWidth.addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            state.parameters.lineWidth = value;
+            elements.zorderLineWidthValue.textContent = value.toFixed(1);
+        });
+    }
+
+    // Gosper curve parameters
+    if (elements.gosperIterations) {
+        elements.gosperIterations.addEventListener('input', (e) => {
+            const value = parseInt(e.target.value);
+            state.parameters.iterations = value;
+            elements.gosperIterationsValue.textContent = value;
+        });
+    }
+    if (elements.gosperLineWidth) {
+        elements.gosperLineWidth.addEventListener('input', (e) => {
+            const value = parseFloat(e.target.value);
+            state.parameters.lineWidth = value;
+            elements.gosperLineWidthValue.textContent = value.toFixed(1);
         });
     }
 
@@ -389,6 +460,7 @@ function updatePatternParameters() {
     elements.hilbertParams.style.display = 'none';
     elements.peanoParams.style.display = 'none';
     elements.zorderParams.style.display = 'none';
+    elements.gosperParams.style.display = 'none';
 
     // Show relevant parameter group
     switch (state.currentPattern) {
@@ -410,6 +482,9 @@ function updatePatternParameters() {
         case 'zorder':
             elements.zorderParams.style.display = 'block';
             break;
+        case 'gosper':
+            elements.gosperParams.style.display = 'block';
+            break;
     }
 }
 
@@ -426,6 +501,16 @@ function setupActionListeners() {
 
     // Image upload
     elements.imageUpload.addEventListener('change', handleImageUpload);
+
+    // Halftone controls
+    elements.halftoneContrast.addEventListener('input', (e) => {
+        const value = parseInt(e.target.value);
+        elements.halftoneContrastValue.textContent = value;
+    });
+    elements.halftoneBrightness.addEventListener('input', (e) => {
+        const value = parseInt(e.target.value);
+        elements.halftoneBrightnessValue.textContent = value;
+    });
 
     // Apply halftone
     elements.applyHalftoneBtn.addEventListener('click', applyHalftone);
@@ -509,6 +594,12 @@ async function generatePattern() {
                 };
                 break;
             case 'zorder':
+                params = {
+                    iterations: state.parameters.iterations,
+                    lineWidth: state.parameters.lineWidth
+                };
+                break;
+            case 'gosper':
                 params = {
                     iterations: state.parameters.iterations,
                     lineWidth: state.parameters.lineWidth
@@ -726,8 +817,10 @@ async function applyHalftone() {
     elements.downloadResultBtn.disabled = true;
 
     try {
-        // Get halftone method
+        // Get halftone method and adjustments
         const method = elements.halftoneMethod.value;
+        const contrast = parseInt(elements.halftoneContrast.value);
+        const brightness = parseInt(elements.halftoneBrightness.value);
 
         // Create worker if needed
         if (!state.workers.halftone) {
@@ -763,7 +856,9 @@ async function applyHalftone() {
                 type: 'apply',
                 imageData: state.uploadedImage,
                 patternData: state.generatedPattern,
-                method: method
+                method: method,
+                contrast: contrast,
+                brightness: brightness
             });
         });
 
