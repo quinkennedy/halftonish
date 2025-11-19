@@ -48,6 +48,80 @@ Implement Hilbert space-filling curve as the primary SDF pattern for halftoning.
 
 ## DONE Features
 
+### F10: Pattern Inversion ✓
+**Priority:** P1
+**Status:** DONE (Completed: 2025-01-19)
+
+**Description:**
+Option to invert patterns (swap black/white).
+
+**User Stories:**
+- As a user, I want to invert my pattern ✓
+- As a user, I want to try both positive and negative versions ✓
+
+**Acceptance Criteria:**
+- Invert checkbox available ✓
+- Works for all patterns ✓
+- Maintains quality ✓
+
+**Implementation:**
+- Checkbox in UI (index.html)
+- Applied after pattern generation in app.js
+- Simple RGB inversion: `value = 255 - value`
+- Works seamlessly with all pattern types
+
+**All acceptance criteria met. Feature fully functional.**
+
+### F9: Z-Order (Morton) Curve Pattern ✓
+**Priority:** P1
+**Status:** DONE (Completed: 2025-01-19)
+
+**Description:**
+Implement Z-order/Morton curve pattern using bit-interleaving algorithm.
+
+**User Stories:**
+- As a user, I want to use simpler Z-order curves ✓
+- As a user, I want faster generation for simple patterns ✓
+
+**Acceptance Criteria:**
+- Correct Z-order curve generation ✓
+- Faster than Hilbert (simpler algorithm) ✓
+- Same parameter interface (iterations, lineWidth) ✓
+- Iterations 1-8 supported ✓
+
+**Implementation:**
+- Morton encoding using bit interleaving
+- 2×2 recursive subdivision
+- Distinctive diagonal Z-patterns
+- Fast generation via sorting Morton codes
+
+**All acceptance criteria met. Pattern fully functional.**
+
+### F8: Peano Curve Pattern ✓
+**Priority:** P1
+**Status:** DONE (Completed: 2025-01-19)
+
+**Description:**
+Implement Peano space-filling curve as second pattern option.
+
+**User Stories:**
+- As a user, I want to choose Peano curve instead of Hilbert ✓
+- As a user, I want the same controls (iterations, width) ✓
+
+**Acceptance Criteria:**
+- Correct Peano curve mathematics ✓
+- Same parameter interface as Hilbert ✓
+- Visual quality comparable to Hilbert ✓
+- Recommended iterations: 1-6 (3^n growth) ✓
+
+**Implementation:**
+- 3×3 recursive subdivision
+- Directional pattern arrays for continuous curve
+- Meandering rectangular pattern
+- SDF rendering with configurable line width
+
+**All acceptance criteria met. Pattern fully functional.**
+
 ### F3: Apply Halftone to Image ✓
 **Priority:** P0
 **Status:** DONE (Completed: 2025-01-19)
@@ -309,63 +383,6 @@ Ability to cancel long-running operations at any time.
 ---
 
 ## TODO: Should Have Features
-
-### F8: Peano Curve Pattern
-**Priority:** P1
-**Sprint:** 2
-
-**Description:**
-Implement Peano space-filling curve as second pattern option.
-
-**User Stories:**
-- As a user, I want to choose Peano curve instead of Hilbert
-- As a user, I want the same controls (iterations, width)
-
-**Acceptance Criteria:**
-- Correct Peano curve mathematics
-- Same parameter interface as Hilbert
-- Visual quality comparable to Hilbert
-
----
-
-### F9: Z-Order (Morton) Curve Pattern
-**Priority:** P1
-**Sprint:** 2
-
-**Description:**
-Implement Z-order/Morton curve pattern.
-
-**User Stories:**
-- As a user, I want to use simpler Z-order curves
-- As a user, I want faster generation for simple patterns
-
-**Acceptance Criteria:**
-- Correct Z-order curve
-- Faster than Hilbert (simpler algorithm)
-- Same parameter interface
-
----
-
-### F10: Pattern Inversion
-**Priority:** P1
-**Sprint:** 2
-
-**Description:**
-Option to invert patterns (swap black/white).
-
-**User Stories:**
-- As a user, I want to invert my pattern
-- As a user, I want to try both positive and negative versions
-
-**Acceptance Criteria:**
-- `--invert` flag available
-- Works for all patterns
-- Maintains quality
-
-**Technical Notes:**
-- Simple: `inverted = 1.0 - pattern`
-
----
 
 ### F11: Antialiasing Control
 **Priority:** P1
