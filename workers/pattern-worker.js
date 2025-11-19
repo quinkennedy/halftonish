@@ -6,6 +6,7 @@
 import { generateRandomPattern } from '../patterns/random-pattern.js';
 import { generateNoisePattern } from '../patterns/noise-pattern.js';
 import { generateBendayPattern } from '../patterns/benday-pattern.js';
+import { generateHilbertPattern } from '../patterns/hilbert-pattern.js';
 
 // Cancellation state
 let cancelToken = { cancelled: false };
@@ -71,8 +72,8 @@ async function renderPattern(patternType, params, width, height) {
             break;
 
         case 'hilbert':
-            // TODO: Implement Hilbert curve
-            throw new Error('Hilbert curve pattern not yet implemented');
+            imageData = generateHilbertPattern(width, height, params, onProgress, cancelToken);
+            break;
 
         default:
             throw new Error(`Unknown pattern type: ${patternType}`);

@@ -18,7 +18,31 @@ See `claude.md` for the complete SDLC workflow.
 
 ## ACTIVE Features
 
-(No active features - ready for F2: Hilbert Curve Pattern)
+### F2: Hilbert Curve Pattern
+**Priority:** P0
+**Status:** ACTIVE (Started: 2025-01-19)
+
+**Description:**
+Implement Hilbert space-filling curve as the primary SDF pattern for halftoning. The Hilbert curve is a continuous fractal space-filling curve that provides smooth, organic halftone patterns.
+
+**User Stories:**
+- As a user, I want to generate Hilbert curve patterns
+- As a user, I want to control the recursion depth/iterations
+- As a user, I want to adjust the line thickness
+
+**Acceptance Criteria:**
+- Mathematically correct Hilbert curve generation
+- Iterations parameter (1-8 range)
+- Line width parameter (0.5-10.0 range)
+- Smooth SDF rendering without artifacts
+- Works with all existing features (export, analysis, halftoning)
+
+**Technical Notes:**
+- Recursive algorithm for point generation
+- Distance field computation to curve segments
+- Proper handling of curve endpoints
+- Curve centered in canvas
+- SDF gradient from curve (0/black) to background (255/white)
 
 ---
 
@@ -167,31 +191,6 @@ Generate grayscale images of signed distance field patterns that can be exported
 ---
 
 ## TODO: Must Have Features (MVP)
-
-### F2: Hilbert Curve Pattern
-**Priority:** P0
-**Sprint:** 1
-
-**Description:**
-Implement Hilbert space-filling curve as the first SDF pattern.
-
-**User Stories:**
-- As a user, I want to generate Hilbert curve patterns
-- As a user, I want to control the recursion depth/iterations
-- As a user, I want to adjust the line thickness
-
-**Acceptance Criteria:**
-- Mathematically correct Hilbert curve generation
-- Iterations parameter (1-8 range)
-- Line width parameter (0.1-10.0 range)
-- Smooth SDF rendering without artifacts
-
-**Technical Notes:**
-- Recursive algorithm for point generation
-- Distance field computation to curve segments
-- Proper handling of curve endpoints
-
----
 
 ### F4: Web User Interface
 **Priority:** P0
