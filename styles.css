@@ -265,6 +265,102 @@ footer a:hover {
     text-decoration: underline;
 }
 
+/* Size mode controls */
+.radio-group {
+    display: flex;
+    gap: 1rem;
+}
+
+.radio-group label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.radio-group input[type="radio"] {
+    cursor: pointer;
+}
+
+.size-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 0.75rem;
+    background: var(--background);
+    border-radius: 0.375rem;
+    border: 1px solid var(--border-color);
+}
+
+input[type="number"] {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.375rem;
+    font-size: 1rem;
+    width: 100%;
+}
+
+input[type="number"]:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+.input-with-unit {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.input-with-unit input[type="number"] {
+    flex: 1;
+}
+
+.input-with-unit select {
+    width: auto;
+    min-width: 60px;
+}
+
+.unit-display {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-weight: 500;
+    padding-left: 0.5rem;
+}
+
+.info-display {
+    background: var(--background);
+    padding: 0.75rem;
+    border-radius: 0.375rem;
+    border: 1px solid var(--border-color);
+}
+
+.info-display label {
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.info-value {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.download-group {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    width: 100%;
+}
+
+.download-group select {
+    width: auto;
+    min-width: 100px;
+}
+
+.download-group button {
+    flex: 1;
+}
+
 /* Mobile responsive */
 @media (max-width: 640px) {
     h1 {

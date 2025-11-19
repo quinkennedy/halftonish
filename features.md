@@ -8,35 +8,80 @@ Features are categorized using MoSCoW method:
 - **Could Have:** Desirable enhancements
 - **Won't Have (Yet):** Future considerations
 
+## Feature Status
+
+Features move through states: **TODO → ACTIVE → DONE**
+
+See `claude.md` for the complete SDLC workflow.
+
 ---
 
-## Must Have Features (MVP)
+## ACTIVE Features
 
 ### F1: Generate SDF Pattern Images
 **Priority:** P0
-**Sprint:** 1-2
+**Status:** ACTIVE (Started: 2025-01-XX)
 
 **Description:**
-Generate grayscale images of signed distance field patterns that can be exported and used for halftoning.
+Generate grayscale images of signed distance field patterns that can be exported and used for halftoning. Includes flexible sizing options (pixels or physical dimensions + DPI), multiple export formats (PNG, PDF), and a darkness analysis tool to verify pattern quality.
 
 **User Stories:**
 - As a user, I want to generate a Hilbert curve pattern at a specified resolution
-- As a user, I want to save the pattern as a PNG file
+- As a user, I want to specify size in pixels (e.g., 1000x1000px) OR physical dimensions + DPI (e.g., 8.5"x11" @ 300dpi)
+- As a user, I want to save the pattern as PNG or PDF
 - As a user, I want to specify the line width and iterations
+- As a user, I want to analyze pattern darkness distribution to ensure quality
+- As a user, I want to import existing halftone patterns to analyze them
 
 **Acceptance Criteria:**
 - Can generate patterns at resolutions from 256x256 to 4096x4096
+- Support pixel-based sizing (width x height in pixels)
+- Support physical sizing (width x height in inches/mm + DPI)
 - Output is grayscale PNG with values 0-255
+- Export to PDF with embedded pattern
 - Line width and iterations are configurable
+- Darkness analysis tool shows red (too dark) and green (too light) overlays
+- Analysis uses configurable radius (default 1/8" at current DPI)
+- Can import patterns (PNG/PDF) for analysis
 - Generation completes in <5s for 4K resolution
 
 **Technical Notes:**
 - Use Canvas API with ImageData for pixel operations
 - Implement coordinate normalization
 - Web Worker for non-blocking rendering
-- Support square dimensions initially
+- Support both square and rectangular dimensions
+- PDF generation via jsPDF library
+- Darkness analysis: sliding window convolution over pixel grid
+- Color overlay for visualization (red/green gradient based on local darkness)
+
+**Enhanced Requirements:**
+1. **Size Input Options:**
+   - Pixel mode: Direct width/height input
+   - Physical mode: Dimensions (in/mm) + DPI → calculate pixels
+   - Toggle between modes in UI
+
+2. **PDF Export:**
+   - Use jsPDF library for client-side PDF generation
+   - Embed pattern as high-quality image in PDF
+   - Include metadata (pattern type, parameters, size, DPI)
+
+3. **Darkness Analysis Tool:**
+   - Analyze local pixel density in circular regions
+   - Radius: 1/8" (configurable) - converted to pixels based on DPI
+   - For each point: count dark vs light pixels in radius
+   - Visualize: Red overlay = too dark, Green = too light, Gray = balanced
+   - Adjustable threshold for "too dark" / "too light"
+   - Can analyze both generated patterns and imported images
 
 ---
+
+## DONE Features
+
+No features completed yet.
+
+---
+
+## TODO: Must Have Features (MVP)
 
 ### F2: Hilbert Curve Pattern
 **Priority:** P0
@@ -207,7 +252,7 @@ Ability to cancel long-running operations at any time.
 
 ---
 
-## Should Have Features
+## TODO: Should Have Features
 
 ### F8: Peano Curve Pattern
 **Priority:** P1
@@ -359,7 +404,7 @@ Post-processing controls for halftoned images.
 
 ---
 
-## Could Have Features
+## TODO: Could Have Features
 
 ### F15: Multiple Halftone Methods
 **Priority:** P2
@@ -532,7 +577,7 @@ Detailed logging for troubleshooting via browser console.
 
 ---
 
-## Won't Have (Yet) - Future Considerations
+## TODO: Won't Have (Yet) - Future Considerations
 
 ### F23: Desktop Application
 **Priority:** P3
