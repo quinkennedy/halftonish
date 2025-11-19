@@ -199,6 +199,36 @@ function setupControlListeners() {
     elements.exportFormat.addEventListener('change', (e) => {
         state.exportFormat = e.target.value;
     });
+
+    // Analysis radius slider
+    elements.analysisRadiusSlider.addEventListener('input', (e) => {
+        const value = parseFloat(e.target.value);
+        state.analysisConfig.radiusInches = value;
+        elements.analysisRadiusValue.textContent = value.toFixed(4);
+    });
+
+    // Upper threshold slider
+    elements.upperThresholdSlider.addEventListener('input', (e) => {
+        const value = parseFloat(e.target.value);
+        state.analysisConfig.upperThreshold = value;
+        elements.upperThresholdValue.textContent = (value * 100).toFixed(0);
+    });
+
+    // Lower threshold slider
+    elements.lowerThresholdSlider.addEventListener('input', (e) => {
+        const value = parseFloat(e.target.value);
+        state.analysisConfig.lowerThreshold = value;
+        elements.lowerThresholdValue.textContent = (value * 100).toFixed(0);
+    });
+
+    // Show overlay checkbox
+    elements.showOverlayCheckbox.addEventListener('change', (e) => {
+        state.showOverlay = e.target.checked;
+        // Re-render analysis if we have results
+        if (state.analysisResult) {
+            renderAnalysisResult();
+        }
+    });
 }
 
 /**
@@ -251,6 +281,13 @@ function setupActionListeners() {
 
     // Download result
     elements.downloadResultBtn.addEventListener('click', downloadResult);
+
+    // Pattern import for analysis
+    elements.importPattern.addEventListener('change', handlePatternImport);
+
+    // Darkness analysis
+    elements.analyzeBtn.addEventListener('click', analyzeDarkness);
+    elements.cancelAnalysisBtn.addEventListener('click', cancelAnalysis);
 }
 
 /**
@@ -502,6 +539,164 @@ function downloadResult() {
         a.click();
         URL.revokeObjectURL(url);
     });
+}
+
+/**
+ * Handle pattern import for analysis
+ */
+async function handlePatternImport(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    console.log('Importing pattern for analysis:', file.name);
+
+    try {
+        const img = new Image();
+        img.onload = () => {
+            // Draw to analysis canvas
+            const canvas = elements.analysisCanvas;
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+
+            // Store image data
+            state.importedPattern = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+            // Update DPI in analysis config if physical mode
+            if (state.sizeConfig.mode === 'physical') {
+                state.analysisConfig.dpi = state.sizeConfig.dpi;
+            }
+
+            // Enable analyze button
+            elements.analyzeBtn.disabled = false;
+
+            console.log('Pattern imported:', img.width, 'x', img.height);
+        };
+        img.onerror = () => {
+            throw new Error('Failed to load pattern image');
+        };
+        img.src = URL.createObjectURL(file);
+    } catch (error) {
+        console.error('Pattern import failed:', error);
+        alert('Failed to import pattern: ' + error.message);
+    }
+}
+
+/**
+ * Analyze pattern darkness
+ */
+async function analyzeDarkness() {
+    console.log('Analyzing pattern darkness');
+
+    // Get pattern to analyze (imported or generated)
+    let imageData = state.importedPattern || state.generatedPattern;
+
+    if (!imageData) {
+        alert('Please generate or import a pattern first');
+        return;
+    }
+
+    // Update UI
+    state.rendering.isAnalyzing = true;
+    elements.analyzeBtn.disabled = true;
+    elements.cancelAnalysisBtn.style.display = 'inline-block';
+    elements.analysisProgress.style.display = 'block';
+    elements.analysisStats.style.display = 'none';
+
+    try {
+        // Update DPI from current size config
+        state.analysisConfig.dpi = state.sizeConfig.dpi || 300;
+
+        // Run analysis with progress callback
+        const result = await state.analyzer.analyze(
+            imageData,
+            state.analysisConfig,
+            (progress) => {
+                updateAnalysisProgress(progress);
+            }
+        );
+
+        // Store result
+        state.analysisResult = result;
+
+        // Render result
+        renderAnalysisResult();
+
+        console.log('Analysis complete:', result.stats);
+    } catch (error) {
+        console.error('Analysis failed:', error);
+        if (error.message !== 'Analysis cancelled') {
+            alert('Analysis failed: ' + error.message);
+        }
+    } finally {
+        // Reset UI
+        state.rendering.isAnalyzing = false;
+        elements.analyzeBtn.disabled = false;
+        elements.cancelAnalysisBtn.style.display = 'none';
+        elements.analysisProgress.style.display = 'none';
+    }
+}
+
+/**
+ * Cancel darkness analysis
+ */
+function cancelAnalysis() {
+    console.log('Cancelling analysis');
+    state.analyzer.cancel();
+}
+
+/**
+ * Update analysis progress
+ */
+function updateAnalysisProgress(progress) {
+    const percent = Math.round(progress * 100);
+    elements.analysisProgressFill.style.width = percent + '%';
+    elements.analysisProgressText.textContent = percent + '%';
+}
+
+/**
+ * Render analysis result with overlay and stats
+ */
+function renderAnalysisResult() {
+    if (!state.analysisResult) return;
+
+    const canvas = elements.analysisCanvas;
+    const ctx = canvas.getContext('2d');
+
+    // Get base image
+    const baseImage = state.importedPattern || state.generatedPattern;
+    if (!baseImage) return;
+
+    // Ensure canvas size matches
+    if (canvas.width !== baseImage.width || canvas.height !== baseImage.height) {
+        canvas.width = baseImage.width;
+        canvas.height = baseImage.height;
+    }
+
+    // Draw base image
+    ctx.putImageData(baseImage, 0, 0);
+
+    // Generate and composite overlay if enabled
+    if (state.showOverlay) {
+        const overlayCanvas = generateOverlay(
+            state.analysisResult.darknessMap,
+            state.analysisResult.samplesWide,
+            state.analysisResult.samplesHigh,
+            state.analysisResult.stride,
+            baseImage.width,
+            baseImage.height,
+            state.analysisResult.config.upperThreshold,
+            state.analysisResult.config.lowerThreshold
+        );
+
+        compositeOverlay(canvas, overlayCanvas);
+    }
+
+    // Update stats display
+    const statsHTML = formatStats(state.analysisResult.stats);
+    elements.statsContent.innerHTML = statsHTML;
+    elements.analysisStats.style.display = 'block';
 }
 
 // Initialize when DOM is ready
