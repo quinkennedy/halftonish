@@ -26,12 +26,17 @@ function squareGridDistance(x, y, spacing) {
  * Calculate distance from point to nearest dot center in hexagonal grid
  */
 function hexGridDistance(x, y, spacing) {
-    const hexHeight = spacing;
-    const hexWidth = spacing * Math.sqrt(3) / 2;
+    // For hexagonal close-packed grid with nearest-neighbor distance = spacing:
+    // - Horizontal spacing within row: spacing
+    // - Vertical spacing between rows: spacing * sqrt(3) / 2
+    // - Horizontal offset for odd rows: spacing / 2
+    const hexHeight = spacing * Math.sqrt(3) / 2;  // vertical row spacing
+    const hexWidth = spacing;  // horizontal spacing within row
+    const rowOffset = spacing / 2;  // offset for alternating rows
 
     // Convert to hex grid coordinates
     const row = Math.round(y / hexHeight);
-    const col = Math.round((x - (row % 2) * hexWidth / 2) / (hexWidth * 1.5));
+    const col = Math.round((x - (row % 2) * rowOffset) / hexWidth);
 
     // Check this cell and neighbors
     let minDist = Infinity;
@@ -41,7 +46,7 @@ function hexGridDistance(x, y, spacing) {
             const r = row + dr;
             const c = col + dc;
 
-            const centerX = c * hexWidth * 1.5 + (r % 2) * hexWidth / 2;
+            const centerX = c * hexWidth + (r % 2) * rowOffset;
             const centerY = r * hexHeight;
 
             const dx = x - centerX;
@@ -115,11 +120,11 @@ export function generateBendayPattern(width, height, params, onProgress, cancelT
 
     // Maximum distance from dot center to furthest point in grid cell
     // For square grid: diagonal from center to corner = spacing / sqrt(2)
-    // For hexagonal grid: distance to cell edge
+    // For hexagonal grid: distance from center to hexagon corner = spacing
     let maxDist;
     if (gridType === 'hexagonal') {
-        // For hex grid, furthest point is at edge
-        maxDist = spacing / 2;
+        // For hex grid, furthest point is at hexagon corner
+        maxDist = spacing;
     } else {
         // For square grid, furthest point is at diagonal corner
         maxDist = spacing / Math.sqrt(2);
