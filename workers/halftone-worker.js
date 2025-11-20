@@ -160,12 +160,11 @@ async function applyThresholdOrBlend(imageData, patternData, method) {
 
 /**
  * Floyd-Steinberg error diffusion dithering
+ * Uses fixed threshold (128) - ignores pattern
  */
 async function applyFloydSteinberg(imageData, patternData) {
     const imgWidth = imageData.width;
     const imgHeight = imageData.height;
-    const patWidth = patternData.width;
-    const patHeight = patternData.height;
 
     // Create a working copy of grayscale values (with error accumulation)
     const grayValues = new Float32Array(imgWidth * imgHeight);
@@ -184,6 +183,7 @@ async function applyFloydSteinberg(imageData, patternData) {
     const result = new ImageData(imgWidth, imgHeight);
     const totalPixels = imgWidth * imgHeight;
     const chunkSize = 10000;
+    const threshold = 128; // Fixed threshold for traditional dithering
 
     // Floyd-Steinberg error diffusion
     for (let y = 0; y < imgHeight; y++) {
@@ -196,13 +196,7 @@ async function applyFloydSteinberg(imageData, patternData) {
             const idx = y * imgWidth + x;
             const oldPixel = grayValues[idx];
 
-            // Get pattern threshold with tiling
-            const patX = x % patWidth;
-            const patY = y % patHeight;
-            const patternIndex = (patY * patWidth + patX) * 4;
-            const threshold = patternData.data[patternIndex];
-
-            // Quantize to black or white based on pattern threshold
+            // Quantize to black or white based on fixed threshold
             const newPixel = oldPixel < threshold ? 0 : 255;
 
             // Calculate error
@@ -245,14 +239,13 @@ async function applyFloydSteinberg(imageData, patternData) {
 
 /**
  * Ordered dithering using Bayer matrix
+ * Uses traditional Bayer threshold - ignores pattern
  */
 async function applyOrderedDithering(imageData, patternData) {
     const imgWidth = imageData.width;
     const imgHeight = imageData.height;
-    const patWidth = patternData.width;
-    const patHeight = patternData.height;
 
-    // 8x8 Bayer matrix
+    // 8x8 Bayer matrix (normalized to 0-63)
     const bayerMatrix = [
         [0,  48, 12, 60, 3,  51, 15, 63],
         [32, 16, 44, 28, 35, 19, 47, 31],
@@ -282,20 +275,11 @@ async function applyOrderedDithering(imageData, patternData) {
                         0.587 * imageData.data[pixelIndex + 1] +
                         0.114 * imageData.data[pixelIndex + 2];
 
-            // Get pattern value with tiling
-            const patX = x % patWidth;
-            const patY = y % patHeight;
-            const patternIndex = (patY * patWidth + patX) * 4;
-            const patternValue = patternData.data[patternIndex];
-
-            // Get Bayer threshold
-            const bayerValue = bayerMatrix[y % 8][x % 8] / 64 * 255;
-
-            // Combine pattern and Bayer matrix
-            const combinedThreshold = (patternValue + bayerValue) / 2;
+            // Get Bayer threshold (0-255 range)
+            const bayerThreshold = (bayerMatrix[y % 8][x % 8] / 64) * 255;
 
             // Apply threshold
-            const output = gray < combinedThreshold ? 0 : 255;
+            const output = gray < bayerThreshold ? 0 : 255;
 
             // Write result
             result.data[pixelIndex] = output;

@@ -50,11 +50,12 @@ const state = {
     },
     uploadedImage: null,
     generatedPattern: null,
+    uploadedPattern: null, // Custom pattern uploaded by user for halftoning
     exportFormat: 'png',
     analysisConfig: getDefaultAnalysisConfig(300),
     analysisResult: null,
     showOverlay: true,
-    importedPattern: null,
+    importedPattern: null, // Pattern imported for darkness analysis
     workers: {
         pattern: null,
         halftone: null
@@ -168,6 +169,10 @@ const elements = {
     imageUpload: document.getElementById('image-upload'),
     imageInfo: document.getElementById('image-info'),
     imageDimensions: document.getElementById('image-dimensions'),
+    patternUpload: document.getElementById('pattern-upload'),
+    patternInfo: document.getElementById('pattern-info'),
+    patternSource: document.getElementById('pattern-source'),
+    clearPatternBtn: document.getElementById('clear-pattern-btn'),
     halftoneMethod: document.getElementById('halftone-method'),
     halftoneContrast: document.getElementById('halftone-contrast'),
     halftoneContrastValue: document.getElementById('halftone-contrast-value'),
@@ -502,6 +507,10 @@ function setupActionListeners() {
     // Image upload
     elements.imageUpload.addEventListener('change', handleImageUpload);
 
+    // Pattern upload for halftoning
+    elements.patternUpload.addEventListener('change', handlePatternUpload);
+    elements.clearPatternBtn.addEventListener('click', clearUploadedPattern);
+
     // Halftone controls
     elements.halftoneContrast.addEventListener('input', (e) => {
         const value = parseInt(e.target.value);
@@ -680,6 +689,9 @@ async function generatePattern() {
         elements.downloadPatternBtn.disabled = false;
         elements.analyzeBtn.disabled = false;
 
+        // Update halftone button state (enable if image is uploaded)
+        updateHalftoneButtonState();
+
         console.log('Pattern generated successfully:', width, 'x', height);
     } catch (error) {
         console.error('Pattern generation failed:', error);
@@ -775,8 +787,8 @@ async function handleImageUpload(e) {
             elements.imageDimensions.textContent = `${img.width} × ${img.height} px`;
             elements.imageInfo.style.display = 'flex';
 
-            // Enable halftone button
-            elements.applyHalftoneBtn.disabled = false;
+            // Enable halftone button if we have a pattern
+            updateHalftoneButtonState();
 
             // Enable match image size button
             elements.matchImageSizeBtn.disabled = false;
@@ -794,6 +806,134 @@ async function handleImageUpload(e) {
 }
 
 /**
+ * Handle pattern upload for halftoning
+ */
+async function handlePatternUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    console.log('Loading pattern for halftoning:', file.name);
+
+    try {
+        // Check if PDF or image
+        if (file.type === 'application/pdf') {
+            await loadPatternFromPDF(file);
+        } else if (file.type.startsWith('image/')) {
+            await loadPatternFromImage(file);
+        } else {
+            throw new Error('Unsupported file type. Please use PNG, JPG, or PDF.');
+        }
+
+        // Show pattern info
+        elements.patternSource.textContent = `Uploaded: ${file.name}`;
+        elements.patternInfo.style.display = 'flex';
+
+        // Enable halftone button if we have an image
+        updateHalftoneButtonState();
+
+        console.log('Pattern loaded for halftoning:', file.name);
+    } catch (error) {
+        console.error('Pattern upload failed:', error);
+        alert('Failed to load pattern: ' + error.message);
+    }
+}
+
+/**
+ * Load pattern from image file
+ */
+async function loadPatternFromImage(file) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => {
+            // Create temporary canvas to extract image data
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = img.width;
+            tempCanvas.height = img.height;
+            const ctx = tempCanvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+
+            // Store pattern data
+            state.uploadedPattern = ctx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+
+            console.log('Pattern image loaded:', img.width, 'x', img.height);
+            resolve();
+        };
+        img.onerror = () => {
+            reject(new Error('Failed to load pattern image'));
+        };
+        img.src = URL.createObjectURL(file);
+    });
+}
+
+/**
+ * Load pattern from PDF file
+ */
+async function loadPatternFromPDF(file) {
+    // Check if PDF.js is available
+    if (typeof pdfjsLib === 'undefined') {
+        throw new Error('PDF.js library not loaded');
+    }
+
+    // Set worker source
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    // Read file as array buffer
+    const arrayBuffer = await file.arrayBuffer();
+
+    // Load PDF document
+    const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+    const pdf = await loadingTask.promise;
+
+    console.log('PDF loaded for pattern:', pdf.numPages, 'pages');
+
+    // Get first page
+    const page = await pdf.getPage(1);
+
+    // Get viewport at scale 1
+    const viewport = page.getViewport({ scale: 1.0 });
+
+    // Create temporary canvas
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = viewport.width;
+    tempCanvas.height = viewport.height;
+    const ctx = tempCanvas.getContext('2d');
+
+    // Render page to canvas
+    await page.render({
+        canvasContext: ctx,
+        viewport: viewport
+    }).promise;
+
+    // Store pattern data
+    state.uploadedPattern = ctx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+
+    console.log('PDF pattern loaded:', tempCanvas.width, 'x', tempCanvas.height);
+}
+
+/**
+ * Clear uploaded pattern
+ */
+function clearUploadedPattern() {
+    state.uploadedPattern = null;
+    elements.patternUpload.value = '';
+    elements.patternInfo.style.display = 'none';
+    elements.patternSource.textContent = '—';
+
+    console.log('Uploaded pattern cleared');
+}
+
+/**
+ * Update halftone button state based on available resources
+ */
+function updateHalftoneButtonState() {
+    // Enable button if we have an image AND (a generated pattern OR uploaded pattern)
+    const hasImage = state.uploadedImage !== null;
+    const hasPattern = state.generatedPattern !== null || state.uploadedPattern !== null;
+
+    elements.applyHalftoneBtn.disabled = !(hasImage && hasPattern);
+}
+
+/**
  * Apply halftone
  */
 async function applyHalftone() {
@@ -804,8 +944,11 @@ async function applyHalftone() {
         return;
     }
 
-    if (!state.generatedPattern) {
-        alert('Please generate a pattern first');
+    // Use uploaded pattern if available, otherwise use generated pattern
+    const patternToUse = state.uploadedPattern || state.generatedPattern;
+
+    if (!patternToUse) {
+        alert('Please generate or upload a pattern first');
         return;
     }
 
@@ -855,7 +998,7 @@ async function applyHalftone() {
             worker.postMessage({
                 type: 'apply',
                 imageData: state.uploadedImage,
-                patternData: state.generatedPattern,
+                patternData: patternToUse,
                 method: method,
                 contrast: contrast,
                 brightness: brightness

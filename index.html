@@ -400,6 +400,24 @@
                     </div>
 
                     <div class="control-group">
+                        <label for="pattern-upload">Upload Pattern (optional):</label>
+                        <input type="file" id="pattern-upload" accept="image/png,image/jpeg,application/pdf">
+                        <p style="font-size: 0.75rem; color: var(--text-secondary); margin: 0.25rem 0 0 0;">
+                            Upload a custom pattern, or use a generated pattern from above
+                        </p>
+                    </div>
+
+                    <div class="control-group info-display" id="pattern-info" style="display: none;">
+                        <label>Pattern Source:</label>
+                        <div class="info-value">
+                            <span id="pattern-source">—</span>
+                            <button id="clear-pattern-btn" class="btn btn-secondary" style="margin-left: 0.5rem; padding: 0.25rem 0.5rem; font-size: 0.85rem;">
+                                Clear Uploaded Pattern
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
                         <label for="halftone-method">Method:</label>
                         <select id="halftone-method">
                             <option value="threshold">Threshold</option>
